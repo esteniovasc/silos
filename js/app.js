@@ -42,25 +42,26 @@ function toggleSilo(key) {
 function renderLists() {
 	listsContainer.innerHTML = '';
 
-	// Para cada silo ativo, cria uma coluna
-	activeSilos.forEach(key => {
-		const info = data[key];
-		const col = document.createElement('div');
-		col.className = 'list-column';
-		col.id = `list-${key}`; // ID para desenhar a linha depois
+	// Percorre a ordem original dos dados para manter a sequência das colunas
+	Object.keys(data).forEach(key => {
+		if (activeSilos.includes(key)) {
+			const info = data[key];
+			const col = document.createElement('div');
+			col.className = 'list-column';
+			col.id = `list-${key}`; // ID para desenhar a linha depois
 
-		let cardsHtml = '';
-		info.items.forEach(item => {
-			// Using data attributes for event delegation instead of onclick string with complex args
-			cardsHtml += `
+			let cardsHtml = '';
+			info.items.forEach(item => {
+				// Using data attributes for event delegation instead of onclick string with complex args
+				cardsHtml += `
                 <div class="item-card" data-title="${item.title}" data-desc="${item.desc}" data-link="${item.link}">
                     <div class="item-title">${item.title}</div>
                     <div class="item-desc">${item.desc}</div>
                 </div>
             `;
-		});
+			});
 
-		col.innerHTML = `
+			col.innerHTML = `
             <div class="list-header">
                 <span>${info.label}</span>
                 <span>...</span>
@@ -68,7 +69,8 @@ function renderLists() {
             ${cardsHtml}
             <button class="btn-add-item" onclick="alert('Abre formulário de cadastro novo item')">+ Novo Item</button>
         `;
-		listsContainer.appendChild(col);
+			listsContainer.appendChild(col);
+		}
 	});
 
 	// Após renderizar o HTML, desenha as linhas
