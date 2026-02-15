@@ -170,3 +170,59 @@ if (closeBtn) closeBtn.onclick = closeModal;
 
 // Inicia desenhando
 requestAnimationFrame(drawLines);
+
+// ================= CUSTOMIZAÇÃO DA LOGO =================
+const rootNode = document.getElementById('root');
+const logoImg = document.getElementById('logo-img');
+const logoInput = document.getElementById('logo-input');
+
+// 1. Carregar logo salva (Já tratado no HTML para evitar flash)
+// const savedLogo = localStorage.getItem('silos-custom-logo');
+// if (savedLogo) {
+// 	logoImg.src = savedLogo;
+// }
+
+// 2. Clique para alterar
+rootNode.addEventListener('click', () => logoInput.click());
+
+// 3. Ao selecionar arquivo
+logoInput.addEventListener('change', (e) => {
+	const file = e.target.files[0];
+	handleLogoFile(file);
+});
+
+// 4. Drag & Drop
+rootNode.addEventListener('dragover', (e) => {
+	e.preventDefault();
+	rootNode.style.borderColor = 'var(--accent)';
+});
+
+rootNode.addEventListener('dragleave', (e) => {
+	e.preventDefault();
+	rootNode.style.borderColor = 'var(--primary)';
+});
+
+rootNode.addEventListener('drop', (e) => {
+	e.preventDefault();
+	rootNode.style.borderColor = 'var(--primary)';
+
+	if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+		handleLogoFile(e.dataTransfer.files[0]);
+	}
+});
+
+function handleLogoFile(file) {
+	if (!file || !file.type.startsWith('image/')) return;
+
+	const reader = new FileReader();
+	reader.onload = (e) => {
+		const base64 = e.target.result;
+		logoImg.src = base64;
+		localStorage.setItem('silos-custom-logo', base64);
+
+		// Efeito visual de confirmação
+		rootNode.style.transform = 'scale(0.9)';
+		setTimeout(() => rootNode.style.transform = 'scale(1)', 150);
+	};
+	reader.readAsDataURL(file);
+}

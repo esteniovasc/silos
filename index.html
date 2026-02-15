@@ -18,9 +18,24 @@
 
 		<header id="sticky-header">
 			<div class="root-node" id="root">
-				<!-- Ajuste: Nome do arquivo verificado no diretório -->
-				<img src="logomuseu.png" alt="Logo Museu"
+				<!-- Imagem da Logo -->
+				<img src="logomuseu.png" alt="Logo Museu" id="logo-img"
+					title="Clique para alterar (Recomendado: 100x100px)"
 					style="border-radius:50%; display:block; width: 100%; height: 100%; object-fit: cover;">
+				<script>
+					// Previne "flash" da logo antiga carregando a nova imediatamente
+					const savedLogo = localStorage.getItem('silos-custom-logo');
+					if (savedLogo) document.getElementById('logo-img').src = savedLogo;
+				</script>
+
+				<!-- Overlay de Edição -->
+				<div class="edit-overlay" id="edit-overlay">
+					<span>✏️</span>
+					<span style="font-size: 8px;">Alterar</span>
+				</div>
+
+				<!-- Input Oculto -->
+				<input type="file" id="logo-input" accept="image/*" hidden>
 			</div>
 
 			<div class="silos-row" id="silos-container">
