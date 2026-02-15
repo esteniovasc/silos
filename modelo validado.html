@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Mental FCFFL</title>
+    <style>
+        :root {
+            --primary: #004d40;
+            --accent: #ff6f00;
+            --bg: #f4f7f6;
+            --line-color: #cbd5e1;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+            overflow-x: auto; /* Permite rolar para os lados como um mapa */
+            height: 100vh;
+        }
+
+        /* O CONTAINER INFINITO (CANVAS) */
+        #canvas {
+            min-width: 100%;
+            min-height: 100%;
+            padding: 40px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* CAMADA DE LINHAS (SVG) */
+        #svg-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; /* Deixa clicar através das linhas */
+            z-index: 0;
+        }
+
+        /* NÓ RAIZ (LOGO) */
+        .root-node {
+            width: 80px; height: 80px;
+            background: white;
+            border: 4px solid var(--primary);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 12px; text-align: center;
+            z-index: 2;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 60px; /* Espaço para as linhas */
+        }
+
+        /* LINHA DOS SILOS */
+        .silos-row {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 60px;
+            z-index: 2;
+        }
+
+        .silo-ball {
+            width: 100px; height: 100px;
+            background: white;
+            border-radius: 50%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .silo-ball:hover { transform: translateY(-5px); }
+        
+        .silo-ball.active {
+            border-color: var(--accent);
+            background: #fff8e1;
+            transform: scale(1.1);
+            box-shadow: 0 8px 15px rgba(255, 111, 0, 0.2);
+        }
+
+        .silo-icon { font-size: 24px; margin-bottom: 5px; }
+        .silo-label { font-size: 12px; font-weight: bold; text-transform: uppercase; color: var(--primary); }
+
+        /* BOTÃO ADICIONAR SILO */
+        .add-silo-btn {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            border: 2px dashed #ccc;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; align-self: center;
+            color: #888; font-size: 20px;
+        }
+        .add-silo-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* LINHA DAS LISTAS (COLUNAS) */
+        .lists-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            z-index: 2;
+            min-height: 300px;
+        }
+
+        /* A COLUNA DA LISTA */
+        .list-column {
+            width: 280px;
+            background: #eef2f5;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex; flex-direction: column;
+            gap: 10px;
+            border-top: 5px solid var(--primary);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .list-header {
+            font-weight: bold;
+            color: var(--primary);
+            display: flex; justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        /* O CARD DE ITEM */
+        .item-card {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 3px solid #ccc;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .item-card:hover { transform: translateX(3px); border-left-color: var(--accent); }
+
+        .item-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+        .item-desc { font-size: 0.8rem; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+        
+        .btn-add-item {
+            background: transparent;
+            border: 2px dashed #ccc;
+            color: #888;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .btn-add-item:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* MODAL DE DETALHES (SIMPLES) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 100;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal {
+            background: white; width: 90%; max-width: 500px;
+            padding: 25px; border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .close-btn { float: right; cursor: pointer; font-size: 20px; }
+    </style>
+</head>
+<body>
+
+    <div id="canvas">
+        <svg id="svg-layer">
+            </svg>
+
+        <div class="root-node" id="root">
+            <img src="logo.png" style="border-radius:50%; display:block;">
+        </div>
+
+        <div class="silos-row" id="silos-container">
+            <div class="add-silo-btn" onclick="alert('Funcionalidade futura: Criar novo silo')">+</div>
+        </div>
+
+        <div class="lists-row" id="lists-container">
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title">Título</h2>
+            <p id="modal-desc">Descrição</p>
+            <hr>
+            <div style="background:#f9f9f9; padding:10px; border-radius:5px; margin-bottom:15px;">
+                <strong>Links:</strong><br>
+                <a href="#" id="modal-link" target="_blank">Acessar Recurso</a>
+            </div>
+            <button style="background:red; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;" onclick="alert('Simulação: Item deletado')">Excluir Item</button>
+        </div>
+    </div>
+
+    <script>
+        // ================= DADOS (FONTE DA VERDADE) =================
+        const data = {
+            'projetos': {
+                icon: '🎭', label: 'Projetos',
+                items: [
+                    { title: "Dramas de Caridade", desc: "Resgate histórico e vídeos.", link: "#" },
+                    { title: "Museu Vivo", desc: "Rodas de conversa mensais.", link: "#" },
+                    { title: "Revista 150 Anos", desc: "Diagramação finalizada.", link: "#" }
+                ]
+            },
+            'acervo': {
+                icon: '📂', label: 'Ativos',
+                items: [
+                    { title: "Logo & Identidade", desc: "Vetores e Manual de Marca.", link: "#" },
+                    { title: "Fotos Eventos 2025", desc: "Pasta Drive organizada.", link: "#" }
+                ]
+            },
+            'pessoas': {
+                icon: '👥', label: 'Pessoas',
+                items: [
+                    { title: "Nágela Lopes", desc: "Currículo e Docs Pessoais.", link: "#" },
+                    { title: "Voluntários", desc: "Escala e Onboarding.", link: "#" }
+                ]
+            },
+            'admin': {
+                icon: '🔐', label: 'Admin',
+                items: [
+                    { title: "Senhas Mestre", desc: "Acesso restrito.", link: "#" },
+                    { title: "Financeiro", desc: "Planilhas de custos.", link: "#" }
+                ]
+            }
+        };
+
+        // Estado: Quais silos estão abertos?
+        let activeSilos = [];
+
+        // ================= INICIALIZAÇÃO =================
+        const silosContainer = document.getElementById('silos-container');
+        const listsContainer = document.getElementById('lists-container');
+        const addBtn = document.querySelector('.add-silo-btn');
+
+        // Renderiza as Bolas (Silos)
+        for (const [key, value] of Object.entries(data)) {
+            const silo = document.createElement('div');
+            silo.className = 'silo-ball';
+            silo.id = `silo-${key}`;
+            silo.onclick = () => toggleSilo(key);
+            silo.innerHTML = `
+                <div class="silo-icon">${value.icon}</div>
+                <div class="silo-label">${value.label}</div>
+            `;
+            silosContainer.insertBefore(silo, addBtn);
+        }
+
+        // ================= LÓGICA DE INTERAÇÃO =================
+        function toggleSilo(key) {
+            const index = activeSilos.indexOf(key);
+            const siloElement = document.getElementById(`silo-${key}`);
+
+            if (index > -1) {
+                // Se já está aberto, fecha
+                activeSilos.splice(index, 1);
+                siloElement.classList.remove('active');
+            } else {
+                // Se está fechado, abre
+                activeSilos.push(key);
+                siloElement.classList.add('active');
+            }
+            renderLists();
+        }
+
+        function renderLists() {
+            listsContainer.innerHTML = '';
+            
+            // Para cada silo ativo, cria uma coluna
+            activeSilos.forEach(key => {
+                const info = data[key];
+                const col = document.createElement('div');
+                col.className = 'list-column';
+                col.id = `list-${key}`; // ID para desenhar a linha depois
+                
+                let cardsHtml = '';
+                info.items.forEach(item => {
+                    cardsHtml += `
+                        <div class="item-card" onclick="openModal('${item.title}', '${item.desc}', '${item.link}')">
+                            <div class="item-title">${item.title}</div>
+                            <div class="item-desc">${item.desc}</div>
+                        </div>
+                    `;
+                });
+
+                col.innerHTML = `
+                    <div class="list-header">
+                        <span>${info.label}</span>
+                        <span>...</span>
+                    </div>
+                    ${cardsHtml}
+                    <button class="btn-add-item" onclick="alert('Abre formulário de cadastro novo item')">+ Novo Item</button>
+                `;
+                listsContainer.appendChild(col);
+            });
+
+            // Após renderizar o HTML, desenha as linhas
+            setTimeout(drawLines, 50);
+        }
+
+        // ================= DESENHO DAS LINHAS (SVG) =================
+        function drawLines() {
+            const svg = document.getElementById('svg-layer');
+            svg.innerHTML = ''; // Limpa linhas antigas
+            
+            const root = document.getElementById('root');
+            const rootRect = root.getBoundingClientRect();
+            const rootX = rootRect.left + rootRect.width / 2;
+            const rootY = rootRect.bottom;
+
+            // 1. Linhas da Raiz para os Silos
+            for (const key of Object.keys(data)) {
+                const silo = document.getElementById(`silo-${key}`);
+                const siloRect = silo.getBoundingClientRect();
+                const siloX = siloRect.left + siloRect.width / 2;
+                const siloY = siloRect.top;
+
+                createPath(svg, rootX, rootY, siloX, siloY, '#ccc', 2);
+
+                // 2. Linhas dos Silos para as Listas (se abertas)
+                if (activeSilos.includes(key)) {
+                    const list = document.getElementById(`list-${key}`);
+                    if (list) {
+                        const listRect = list.getBoundingClientRect();
+                        const listX = listRect.left + listRect.width / 2;
+                        const listY = listRect.top;
+                        const siloBottom = siloRect.bottom;
+                        
+                        createPath(svg, siloX, siloBottom, listX, listY, 'var(--accent)', 3);
+                    }
+                }
+            }
+        }
+
+        // Função auxiliar para criar curva Bezier
+        function createPath(svg, x1, y1, x2, y2, color, width) {
+            // Ajuste para coordenadas relativas ao scroll do container
+            const container = document.getElementById('canvas');
+            const offsetX = container.scrollLeft;
+            const offsetY = container.scrollTop; // Geralmente 0 no body, mas bom garantir
+            
+            // O getBoundingClientRect é relativo ao viewport. 
+            // Como o SVG é absoluto no container, precisamos ajustar se houver scroll na página inteira, 
+            // mas aqui o SVG está dentro do #canvas.
+            
+            // Recalculando coordenadas relativas ao #canvas (que tem position relative)
+            const canvasRect = container.getBoundingClientRect();
+            
+            const startX = x1 - canvasRect.left + container.scrollLeft;
+            const startY = y1 - canvasRect.top + container.scrollTop;
+            const endX = x2 - canvasRect.left + container.scrollLeft;
+            const endY = y2 - canvasRect.top + container.scrollTop;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const midY = (startY + endY) / 2;
+            
+            // Curva suave
+            const d = `M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`;
+            
+            path.setAttribute("d", d);
+            path.setAttribute("stroke", color);
+            path.setAttribute("stroke-width", width);
+            path.setAttribute("fill", "none");
+            svg.appendChild(path);
+        }
+
+        // Redesenha linhas se mudar tamanho da tela
+        window.addEventListener('resize', drawLines);
+        // Redesenha ao rolar (opcional, mas bom para garantir)
+        document.getElementById('canvas').addEventListener('scroll', drawLines);
+
+        // ================= MODAL =================
+        function openModal(title, desc, link) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerText = desc;
+            document.getElementById('modal-link').href = link;
+            document.getElementById('modal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Inicia desenhando as linhas iniciais
+        setTimeout(drawLines, 100);
+
+    </script>
+</body>
+</html>
