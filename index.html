@@ -39,7 +39,7 @@
 			</div>
 
 			<div class="silos-row" id="silos-container">
-				<div class="add-silo-btn" onclick="alert('Funcionalidade futura: Criar novo silo')">+</div>
+				<div class="add-silo-btn">+</div>
 			</div>
 		</header>
 
@@ -50,18 +50,85 @@
 		</div>
 	</div>
 
+	<!-- Modal de Detalhes do Item -->
 	<div class="modal-overlay" id="modal">
 		<div class="modal">
 			<span class="close-btn" onclick="closeModal()">&times;</span>
-			<h2 id="modal-title">Título</h2>
-			<p id="modal-desc">Descrição</p>
-			<hr>
-			<div style="background:#f9f9f9; padding:10px; border-radius:5px; margin-bottom:15px;">
-				<strong>Links:</strong><br>
-				<a href="#" id="modal-link" target="_blank">Acessar Recurso</a>
+			<h2 id="modal-title" style="color: var(--primary); margin-top: 0;">Título</h2>
+			<div id="modal-desc" style="margin: 15px 0; line-height: 1.6; color: #444;">Descrição...</div>
+			<a id="modal-link" href="#" target="_blank"
+				style="display: inline-block; background: var(--accent); color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Acessar</a>
+		</div>
+	</div>
+
+	<!-- Modal de Edição/Criação de Silo -->
+	<div class="modal-overlay" id="silo-modal">
+		<div class="modal" style="max-width: 400px;">
+			<h2 id="silo-modal-title" style="margin-top: 0; color: var(--primary);">Novo Silo</h2>
+
+			<div style="margin-bottom: 15px;">
+				<label style="display:block; font-weight:bold; margin-bottom:5px;">Nome do Silo</label>
+				<input type="text" id="silo-name"
+					style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+					placeholder="Ex: Financeiro">
 			</div>
-			<button style="background:red; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;"
-				onclick="alert('Simulação: Item deletado')">Excluir Item</button>
+
+			<div style="display: flex; gap: 15px; margin-bottom: 15px;">
+				<div style="flex: 1;">
+					<label style="display:block; font-weight:bold; margin-bottom:5px;">Ícone (Emoji)</label>
+					<input type="text" id="silo-icon"
+						style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center;"
+						placeholder="💰">
+				</div>
+				<div style="flex: 2;">
+					<label style="display:block; font-weight:bold; margin-bottom:5px;">Tipo de Layout</label>
+					<select id="silo-type"
+						style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+						<option value="default">Padrão</option>
+						<option value="project">Projetos (Largo)</option>
+						<option value="person">Pessoas (Cards)</option>
+					</select>
+				</div>
+			</div>
+
+			<div style="display: flex; justify-content: space-between; margin-top: 20px;">
+				<button id="btn-delete-silo"
+					style="background: #ff4444; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; display: none;">Excluir</button>
+				<div style="display: flex; gap: 10px; margin-left: auto;">
+					<button onclick="closeSiloModal()"
+						style="background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Cancelar</button>
+					<button id="btn-save-silo"
+						style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Salvar</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal de Confirmação de Exclusão -->
+	<div class="modal-overlay" id="delete-modal">
+		<div class="modal" style="max-width: 450px; border-left: 5px solid #ff4444;">
+			<h2 style="color: #ff4444; margin-top: 0;">⚠️ Excluir Silo?</h2>
+
+			<p id="delete-msg" style="font-size: 1.1em; color: #333; margin-bottom: 10px;">
+				Tem certeza que deseja excluir este silo?
+			</p>
+
+			<div id="delete-items-preview"
+				style="background: #fff0f0; padding: 10px; border-radius: 5px; margin-bottom: 20px; max-height: 150px; overflow-y: auto; font-size: 0.9em; color: #555;">
+				<!-- Lista de itens vai aqui -->
+			</div>
+
+			<p style="font-size: 0.8em; color: #666; margin-top: -10px; margin-bottom: 20px;">
+				Esta ação <strong>NÃO</strong> pode ser desfeita.
+			</p>
+
+			<div style="display: flex; justify-content: flex-end; gap: 10px;">
+				<button onclick="closeDeleteModal()"
+					style="background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Cancelar</button>
+				<button id="btn-confirm-delete"
+					style="background: #ff4444; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Sim,
+					Excluir Tudo</button>
+			</div>
 		</div>
 	</div>
 

@@ -251,6 +251,32 @@ body {
 	overflow: hidden;
 }
 
+/* VARIANTES DE LAYOUT DE LISTA */
+
+/* Tipo Projeto: Mais largo, destaque para descrição */
+.list-type-project {
+	width: 320px;
+	/* Mais largo que o padrão 280px */
+}
+
+/* Tipo Pessoa: Cartões menores, focados em Nome/Cargo */
+.list-type-person .item-card {
+	border-left-width: 5px;
+	/* Destaque na borda */
+}
+
+.list-type-person .item-title {
+	font-size: 1rem;
+	color: var(--primary);
+}
+
+.list-type-person .item-desc {
+	font-style: italic;
+	-webkit-line-clamp: 1;
+	/* Apenas 1 linha para cargo/função */
+	line-clamp: 1;
+}
+
 .btn-add-item {
 	background: transparent;
 	border: 2px dashed #ccc;

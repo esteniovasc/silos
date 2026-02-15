@@ -1,7 +1,52 @@
-import { data } from './data.js';
-
-// Estado: Quais silos estão abertos?
+// ================= ESTADO E DADOS =================
 let activeSilos = [];
+let appData = [];
+
+// Dados Padrão (Caso não tenha nada salvo)
+const defaultData = [
+	{
+		id: 'projetos', label: 'Projetos', icon: '🎭', type: 'project',
+		items: [
+			{ title: "Dramas de Caridade", desc: "Resgate histórico e vídeos.", link: "#" },
+			{ title: "Museu Vivo", desc: "Rodas de conversa mensais.", link: "#" },
+			{ title: "Revista 150 Anos", desc: "Diagramação finalizada.", link: "#" }
+		]
+	},
+	{
+		id: 'ativos', label: 'Ativos', icon: '📂', type: 'default',
+		items: [
+			{ title: "Logo & Identidade", desc: "Vetores e Manual de Marca.", link: "#" },
+			{ title: "Fotos Eventos 2025", desc: "Pasta Drive organizada.", link: "#" }
+		]
+	},
+	{
+		id: 'pessoas', label: 'Pessoas', icon: '👥', type: 'person',
+		items: [
+			{ title: "Nágela Lopes", desc: "Currículo e Docs Pessoais.", link: "#" },
+			{ title: "Voluntários", desc: "Escala e Onboarding.", link: "#" }
+		]
+	},
+	{
+		id: 'admin', label: 'Admin', icon: '🔐', type: 'default',
+		items: [
+			{ title: "Senhas Mestre", desc: "Acesso restrito.", link: "#" },
+			{ title: "Financeiro", desc: "Planilhas de custos.", link: "#" }
+		]
+	}
+];
+
+// Carregar Dados
+const savedData = localStorage.getItem('silos-app-data');
+if (savedData) {
+	appData = JSON.parse(savedData);
+} else {
+	appData = defaultData;
+	saveData(); // Salva o padrão inicial
+}
+
+function saveData() {
+	localStorage.setItem('silos-app-data', JSON.stringify(appData));
+}
 
 // ================= INICIALIZAÇÃO =================
 const silosContainer = document.getElementById('silos-container');
@@ -10,17 +55,28 @@ const scrollContainer = document.getElementById('scrollable-lists');
 const addBtn = document.querySelector('.add-silo-btn');
 
 // Renderiza as Bolas (Silos)
-for (const [key, value] of Object.entries(data)) {
-	const silo = document.createElement('div');
-	silo.className = 'silo-ball';
-	silo.id = `silo-${key}`;
-	silo.onclick = () => toggleSilo(key);
-	silo.innerHTML = `
-        <div class="silo-icon">${value.icon}</div>
-        <div class="silo-label">${value.label}</div>
-    `;
-	silosContainer.insertBefore(silo, addBtn);
+function renderSilos() {
+	// Limpa atuais (preservando botão + se quiser, ou recria tudo)
+	// Vamos manter o botão + no final
+	silosContainer.innerHTML = '';
+
+	appData.forEach(siloData => {
+		const silo = document.createElement('div');
+		silo.className = 'silo-ball';
+		silo.id = `silo-${siloData.id}`;
+		// Se já estava ativo antes do render, mantem active?
+		if (activeSilos.includes(siloData.id)) silo.classList.add('active');
+
+		silo.onclick = () => toggleSilo(siloData.id);
+		silo.innerHTML = `
+            <div class="silo-icon">${siloData.icon}</div>
+            <div class="silo-label">${siloData.label}</div>
+        `;
+		silosContainer.appendChild(silo);
+	});
+	silosContainer.appendChild(addBtn);
 }
+renderSilos();
 
 // ================= LÓGICA DE INTERAÇÃO =================
 
@@ -41,15 +97,14 @@ function toggleSilo(key) {
 function renderLists() {
 	listsContainer.innerHTML = '';
 
-	Object.keys(data).forEach(key => {
-		if (activeSilos.includes(key)) {
-			const info = data[key];
+	appData.forEach(siloData => {
+		if (activeSilos.includes(siloData.id)) {
 			const col = document.createElement('div');
-			col.className = 'list-column';
-			col.id = `list-${key}`;
+			col.className = `list-column list-type-${siloData.type || 'default'}`; // Classe tipada
+			col.id = `list-${siloData.id}`;
 
 			let cardsHtml = '';
-			info.items.forEach(item => {
+			siloData.items.forEach(item => {
 				cardsHtml += `
                 <div class="item-card" data-title="${item.title}" data-desc="${item.desc}" data-link="${item.link}">
                     <div class="item-title">${item.title}</div>
@@ -60,11 +115,11 @@ function renderLists() {
 
 			col.innerHTML = `
             <div class="list-header">
-                <span>${info.label}</span>
-                <span>...</span>
+                <span>${siloData.label}</span>
+                <span class="edit-silo-btn" data-id="${siloData.id}" style="cursor:pointer; opacity:0.5" title="Editar Silo">✏️</span>
             </div>
             ${cardsHtml}
-            <button class="btn-add-item" onclick="alert('Abre formulário de cadastro novo item')">+ Novo Item</button>
+            <button class="btn-add-item" onclick="alert('Funcionalidade futura: Criar novo item em ${siloData.label}')">+ Novo Item</button>
         `;
 			listsContainer.appendChild(col);
 		}
@@ -74,12 +129,20 @@ function renderLists() {
 	requestAnimationFrame(drawLines);
 }
 
-// Event Delegation for Lists Container
+// Event Delegation for Lists Container (Items and Edit Button)
 listsContainer.addEventListener('click', (e) => {
+	// 1. Clique no card (Detalhes)
 	const card = e.target.closest('.item-card');
 	if (card) {
 		const { title, desc, link } = card.dataset;
 		openModal(title, desc, link);
+		return;
+	}
+
+	// 2. Clique no botão de editar silo
+	const editBtn = e.target.closest('.edit-silo-btn');
+	if (editBtn) {
+		openSiloModal(editBtn.dataset.id);
 	}
 });
 
@@ -96,9 +159,11 @@ function drawLines() {
 	const rootX = rootRect.left + rootRect.width / 2;
 	const rootY = rootRect.bottom;
 
-	for (const key of Object.keys(data)) {
+	// 1. Linhas da Raiz para os Silos
+	appData.forEach(siloData => {
+		const key = siloData.id;
 		const silo = document.getElementById(`silo-${key}`);
-		if (!silo) continue;
+		if (!silo) return; // continue
 		const siloRect = silo.getBoundingClientRect();
 		const siloX = siloRect.left + siloRect.width / 2;
 		const siloY = siloRect.top;
@@ -116,7 +181,7 @@ function drawLines() {
 				createPath(svg, siloX, siloBottom, listX, listY, 'var(--accent)', 3);
 			}
 		}
-	}
+	});
 }
 
 function createPath(svg, x1, y1, x2, y2, color, width) {
@@ -152,7 +217,144 @@ resizeObserver.observe(listsContainer);
 resizeObserver.observe(silosContainer);
 
 
-// ================= MODAL =================
+// ================= CRUD SILOS =================
+
+let currentEditingSiloId = null;
+
+// Abrir Modal (Criar ou Editar)
+function openSiloModal(siloId = null) {
+	currentEditingSiloId = siloId;
+	const modal = document.getElementById('silo-modal');
+	const title = document.getElementById('silo-modal-title');
+	const nameInput = document.getElementById('silo-name');
+	const iconInput = document.getElementById('silo-icon');
+	const typeInput = document.getElementById('silo-type');
+	const btnDelete = document.getElementById('btn-delete-silo');
+
+	if (siloId) {
+		// Modo Edição
+		const silo = appData.find(s => s.id === siloId);
+		if (!silo) return;
+
+		title.innerText = 'Editar Silo';
+		nameInput.value = silo.label;
+		iconInput.value = silo.icon;
+		typeInput.value = silo.type || 'default';
+		btnDelete.style.display = 'block';
+		btnDelete.onclick = () => deleteSilo(siloId);
+	} else {
+		// Modo Criação
+		title.innerText = 'Novo Silo';
+		nameInput.value = '';
+		iconInput.value = '📁';
+		typeInput.value = 'default';
+		btnDelete.style.display = 'none';
+	}
+
+	modal.style.display = 'flex';
+}
+
+function closeSiloModal() {
+	document.getElementById('silo-modal').style.display = 'none';
+	currentEditingSiloId = null;
+}
+
+// Botões do Modal
+window.closeSiloModal = closeSiloModal; // Expor para o HTML
+document.getElementById('btn-save-silo').addEventListener('click', saveSilo);
+addBtn.addEventListener('click', () => openSiloModal(null)); // Conectar botão +
+
+function saveSilo() {
+	const name = document.getElementById('silo-name').value;
+	const icon = document.getElementById('silo-icon').value;
+	const type = document.getElementById('silo-type').value;
+
+	if (!name) return alert('Nome é obrigatório');
+
+	if (currentEditingSiloId) {
+		// Editar
+		const silo = appData.find(s => s.id === currentEditingSiloId);
+		if (silo) {
+			silo.label = name;
+			silo.icon = icon;
+			silo.type = type;
+		}
+	} else {
+		// Criar
+		const newId = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
+		appData.push({
+			id: newId,
+			label: name,
+			icon: icon,
+			type: type,
+			items: []
+		});
+	}
+
+	saveData();
+	renderSilos();
+	renderLists(); // Atualiza cabeçalhos se algo mudou
+	closeSiloModal();
+}
+
+// ================= DELETE SAFEGUARD =================
+let siloToDeleteId = null;
+
+function deleteSilo(id) {
+	const silo = appData.find(s => s.id === id);
+	if (!silo) return;
+
+	// Se estiver vazio, deleta direto (ou com confirm simples)
+	if (silo.items.length === 0) {
+		if (confirm(`Excluir o silo "${silo.label}"?`)) {
+			executeDelete(id);
+		}
+		return;
+	}
+
+	// Se tiver itens, abre modal de segurança
+	siloToDeleteId = id;
+	const modal = document.getElementById('delete-modal');
+	const msg = document.getElementById('delete-msg');
+	const preview = document.getElementById('delete-items-preview');
+
+	msg.innerHTML = `O silo <strong>"${silo.label}"</strong> possui <strong>${silo.items.length} itens</strong>:`;
+
+	// Lista os itens
+	preview.innerHTML = silo.items.map(item => `• ${item.title}`).join('<br>');
+
+	modal.style.display = 'flex';
+	// Fecha o modal de edição (que está por baixo)
+	document.getElementById('silo-modal').style.display = 'none';
+}
+
+function closeDeleteModal() {
+	document.getElementById('delete-modal').style.display = 'none';
+	siloToDeleteId = null;
+	// Reabre o modal de edição caso cancelou? Ou fecha tudo? 
+	// Melhor fechar tudo ou deixar o usuário decidir. Vamos deixar fechado.
+}
+
+document.getElementById('btn-confirm-delete').onclick = () => {
+	if (siloToDeleteId) executeDelete(siloToDeleteId);
+};
+
+function executeDelete(id) {
+	appData = appData.filter(s => s.id !== id);
+	activeSilos = activeSilos.filter(sid => sid !== id);
+
+	saveData();
+	renderSilos();
+	renderLists();
+
+	closeDeleteModal();
+	closeSiloModal(); // Garante que o de edição feche também
+}
+
+window.closeDeleteModal = closeDeleteModal;
+
+// ================= MODAL DE DETALHES =================
+
 function openModal(title, desc, link) {
 	document.getElementById('modal-title').innerText = title;
 	document.getElementById('modal-desc').innerText = desc;
@@ -170,6 +372,12 @@ if (closeBtn) closeBtn.onclick = closeModal;
 
 // Inicia desenhando
 requestAnimationFrame(drawLines);
+
+// Expor funções globais necessárias para os onlick do HTML (módulos e escopo)
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.openSiloModal = openSiloModal;
+window.closeSiloModal = closeSiloModal;
 
 // ================= CUSTOMIZAÇÃO DA LOGO =================
 const rootNode = document.getElementById('root');
