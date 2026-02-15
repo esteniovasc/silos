@@ -1,48 +1,57 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa Mental FCFFL</title>
-    <!-- CSS Externo -->
-    <link rel="stylesheet" href="css/style.css">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Mapa Mental FCFFL</title>
+	<!-- CSS Externo -->
+	<link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
-    <div id="canvas">
-        <svg id="svg-layer">
-            <!-- Linhas desenhadas via JS -->
-        </svg>
+	<div id="main-container">
+		<svg id="svg-layer">
+			<!-- Linhas desenhadas via JS -->
+		</svg>
 
-        <div class="root-node" id="root">
-            <!-- Ajuste: Nome do arquivo verificado no diretório -->
-            <img src="logomuseu.png" alt="Logo Museu" style="border-radius:50%; display:block; width: 100%; height: 100%; object-fit: cover;">
-        </div>
+		<header id="sticky-header">
+			<div class="root-node" id="root">
+				<!-- Ajuste: Nome do arquivo verificado no diretório -->
+				<img src="logomuseu.png" alt="Logo Museu"
+					style="border-radius:50%; display:block; width: 100%; height: 100%; object-fit: cover;">
+			</div>
 
-        <div class="silos-row" id="silos-container">
-            <div class="add-silo-btn" onclick="alert('Funcionalidade futura: Criar novo silo')">+</div>
-        </div>
+			<div class="silos-row" id="silos-container">
+				<div class="add-silo-btn" onclick="alert('Funcionalidade futura: Criar novo silo')">+</div>
+			</div>
+		</header>
 
-        <div class="lists-row" id="lists-container">
-            <!-- Listas geradas via JS -->
-        </div>
-    </div>
+		<div id="scrollable-lists">
+			<div class="lists-row" id="lists-container">
+				<!-- Listas geradas via JS -->
+			</div>
+		</div>
+	</div>
 
-    <div class="modal-overlay" id="modal">
-        <div class="modal">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2 id="modal-title">Título</h2>
-            <p id="modal-desc">Descrição</p>
-            <hr>
-            <div style="background:#f9f9f9; padding:10px; border-radius:5px; margin-bottom:15px;">
-                <strong>Links:</strong><br>
-                <a href="#" id="modal-link" target="_blank">Acessar Recurso</a>
-            </div>
-            <button style="background:red; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;" onclick="alert('Simulação: Item deletado')">Excluir Item</button>
-        </div>
-    </div>
+	<div class="modal-overlay" id="modal">
+		<div class="modal">
+			<span class="close-btn" onclick="closeModal()">&times;</span>
+			<h2 id="modal-title">Título</h2>
+			<p id="modal-desc">Descrição</p>
+			<hr>
+			<div style="background:#f9f9f9; padding:10px; border-radius:5px; margin-bottom:15px;">
+				<strong>Links:</strong><br>
+				<a href="#" id="modal-link" target="_blank">Acessar Recurso</a>
+			</div>
+			<button style="background:red; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;"
+				onclick="alert('Simulação: Item deletado')">Excluir Item</button>
+		</div>
+	</div>
 
-    <!-- Script Principal (Módulo) -->
-    <script type="module" src="js/app.js"></script>
+	<!-- Script Principal (Módulo) -->
+	<script type="module" src="js/app.js"></script>
 </body>
+
 </html>
