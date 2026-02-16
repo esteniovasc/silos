@@ -556,12 +556,39 @@ function handleLogoFile(file) {
 	const reader = new FileReader();
 	reader.onload = (e) => {
 		const base64 = e.target.result;
-		logoImg.src = base64;
+
+		// Atualiza Storage
 		localStorage.setItem('silos-custom-logo', base64);
 
+		// Verifica se o logo atual é SVG ou IMG
+		const currentSvg = document.getElementById('logo-svg');
+		const currentImg = document.getElementById('logo-img');
+
+		if (currentSvg) {
+			// Se for SVG, precisamos destruir e recriar a IMG para o script converter de novo
+			const newImg = document.createElement('img');
+			newImg.id = 'logo-img';
+			newImg.src = base64;
+			newImg.alt = "Logo";
+			newImg.style.maxWidth = "100%";
+			newImg.style.maxHeight = "100%";
+
+			currentSvg.replaceWith(newImg);
+
+			// Reconverte após renderizar
+			setTimeout(convertLogoToSvg, 100);
+		} else if (currentImg) {
+			// Se ainda for IMG (ex: falha na conversão anterior), só atualiza src
+			currentImg.src = base64;
+			setTimeout(convertLogoToSvg, 100);
+		}
+
 		// Efeito visual de confirmação
-		rootNode.style.transform = 'scale(0.9)';
-		setTimeout(() => rootNode.style.transform = 'scale(1)', 150);
+		const root = document.getElementById('root');
+		if (root) {
+			root.style.transform = 'scale(0.9)';
+			setTimeout(() => root.style.transform = 'scale(1)', 150);
+		}
 	};
 	reader.readAsDataURL(file);
 }
