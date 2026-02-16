@@ -44,7 +44,9 @@
 
 				<!-- Direita: Placeholder (Futuras Configurações) -->
 				<div class="header-actions-right">
-					<!-- Botão de Configurações virá aqui -->
+					<div class="root-node-placeholder"></div>
+					<button id="btn-settings" class="header-btn" title="Configurações"
+						style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer;">⚙️</button>
 				</div>
 			</div>
 
@@ -211,6 +213,53 @@
 				<button id="btn-confirm-delete"
 					style="background: #ff4444; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Sim,
 					Excluir Tudo</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal de Configurações (Tema) -->
+	<div class="modal-overlay" id="settings-modal">
+		<div class="modal" style="max-width: 400px;">
+			<span class="close-btn" onclick="closeSettingsModal()">&times;</span>
+			<h2 style="margin-top: 0; color: var(--primary);">Personalização</h2>
+
+			<div style="margin-bottom: 20px;">
+				<label style="display:block; font-weight:bold; margin-bottom:5px;">Cor Principal (Logo e
+					Títulos)</label>
+				<div style="display: flex; align-items: center; gap: 10px;">
+					<input type="color" id="color-primary" value="#0067b8"
+						style="cursor: pointer; height: 40px; width: 60px;">
+					<span id="val-primary" style="font-family: monospace;">#0067b8</span>
+				</div>
+			</div>
+
+			<div style="margin-bottom: 20px;">
+				<label style="display:block; font-weight:bold; margin-bottom:5px;">Cor de Destaque
+					(Ações)</label>
+				<div style="display: flex; align-items: center; gap: 10px;">
+					<input type="color" id="color-accent" value="#ff6f00"
+						style="cursor: pointer; height: 40px; width: 60px;">
+					<span id="val-accent" style="font-family: monospace;">#ff6f00</span>
+				</div>
+			</div>
+
+			<div style="margin-bottom: 20px;">
+				<label style="display:block; font-weight:bold; margin-bottom:5px;">Cor de Fundo</label>
+				<div style="display: flex; align-items: center; gap: 10px;">
+					<input type="color" id="color-bg" value="#f4f7f6"
+						style="cursor: pointer; height: 40px; width: 60px;">
+					<span id="val-bg" style="font-family: monospace;">#f4f7f6</span>
+				</div>
+			</div>
+
+			<hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+			<div style="display: flex; justify-content: space-between;">
+				<button id="btn-reset-theme"
+					style="background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Restaurar
+					Padrão</button>
+				<button onclick="closeSettingsModal()"
+					style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Concluir</button>
 			</div>
 		</div>
 	</div>

@@ -700,3 +700,171 @@ function importProject(event) {
 	reader.readAsText(file);
 	event.target.value = ''; // Resetar input
 }
+
+// ================= TEMA E PERSONALIZAÇÃO =================
+
+// Variáveis de Elementos
+const settingsModal = document.getElementById('settings-modal');
+const btnSettings = document.getElementById('btn-settings');
+const colorPrimaryInput = document.getElementById('color-primary');
+const colorAccentInput = document.getElementById('color-accent');
+const colorBgInput = document.getElementById('color-bg');
+const valPrimary = document.getElementById('val-primary');
+const valAccent = document.getElementById('val-accent');
+const valBg = document.getElementById('val-bg');
+const btnResetTheme = document.getElementById('btn-reset-theme');
+
+// Valores Padrão
+const defaultTheme = {
+	primary: '#0067b8',
+	accent: '#ff6f00',
+	bg: '#f4f7f6'
+};
+
+// Inicialização do Tema
+function initTheme() {
+	const savedTheme = JSON.parse(localStorage.getItem('silosAppTheme'));
+	if (savedTheme) {
+		applyTheme(savedTheme.primary, savedTheme.accent, savedTheme.bg);
+		updateInputs(savedTheme.primary, savedTheme.accent, savedTheme.bg);
+	} else {
+		// Se não tiver salvo, garante que os inputs estejam com o padrão
+		updateInputs(defaultTheme.primary, defaultTheme.accent, defaultTheme.bg);
+	}
+
+	// Converter Logo para SVG Inline (para poder colorir dinamicamente)
+	// Pequeno delay para garantir carregamento
+	setTimeout(convertLogoToSvg, 100);
+}
+
+// Aplica as cores no CSS e salva
+function applyTheme(primary, accent, bg) {
+	const root = document.documentElement;
+	root.style.setProperty('--primary', primary);
+	root.style.setProperty('--accent', accent);
+	root.style.setProperty('--bg', bg);
+
+	// Salvar
+	localStorage.setItem('silosAppTheme', JSON.stringify({ primary, accent, bg }));
+
+	// Atualizar Logo SVG se já estiver inline
+	const svgLogo = document.querySelector('#root svg');
+	if (svgLogo) {
+		svgLogo.querySelectorAll('*').forEach(el => {
+			// Reaplicar cores baseadas nas variáveis (já que o SVG usa var(--primary))
+			// Se o SVG já foi convertido, suas cores já são var(--...), então
+			// mudar a variável no root já atualiza automaticamente!
+			// Apenas precisamos garantir que a conversão inicial seta as vars.
+		});
+	} else {
+		// Se ainda for IMG, converte (pode acontecer na primeira carga)
+		convertLogoToSvg();
+	}
+}
+
+// Atualiza os inputs do modal
+function updateInputs(primary, accent, bg) {
+	if (colorPrimaryInput) { colorPrimaryInput.value = primary; valPrimary.innerText = primary; }
+	if (colorAccentInput) { colorAccentInput.value = accent; valAccent.innerText = accent; }
+	if (colorBgInput) { colorBgInput.value = bg; valBg.innerText = bg; }
+}
+
+// Converte <img> para <svg> inline
+async function convertLogoToSvg() {
+	const img = document.getElementById('logo-img');
+	if (!img) return;
+
+	try {
+		const res = await fetch(img.src);
+		let text = await res.text();
+
+		// Parse SVG
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(text, 'image/svg+xml');
+		const svg = doc.querySelector('svg');
+
+		if (svg) {
+			// Substituir cores fixas por variáveis CSS
+			svg.querySelectorAll('*').forEach(el => {
+				const fill = el.getAttribute('fill');
+
+				// Lógica de substituição inteligente
+				if (fill) {
+					const fillLower = fill.toLowerCase();
+					if (fillLower === '#ff6f00') {
+						el.style.fill = 'var(--accent)';
+					} else if (fillLower !== 'none' && fillLower !== '#f4f7f6') {
+						// Assume que qualquer outra cor (ex: azul original) vira Primária
+						el.style.fill = 'var(--primary)';
+					}
+					// O fundo (#f4f7f6) mantemos ou deixamos transparente se quiser
+					// Se o SVG tiver fundo, ele pode conflitar com o fundo do app se mudar
+					// Vamos deixar o fundo do SVG fixo ou remover?
+					// O usuario quer mudar bg da pagina. Se o SVG tiver rect bg, vai ficar quadrado.
+					// Melhor: Se for a cor de fundo original, mudar para var(--bg) ou transparente.
+					if (fillLower === '#f4f7f6') {
+						el.style.fill = 'var(--bg)'; // ou 'transparent'
+					}
+				}
+			});
+
+			// Estilos para manter layout
+			svg.setAttribute('id', 'logo-svg');
+			svg.style.width = '100%';
+			svg.style.height = '100%';
+			svg.style.borderRadius = '50%';
+
+			// Substitui a IMG pelo SVG
+			img.replaceWith(svg);
+		}
+	} catch (e) {
+		console.error('Erro ao converter logo para SVG:', e);
+	}
+}
+
+// Event Listeners
+if (btnSettings) {
+	btnSettings.onclick = () => {
+		settingsModal.style.display = 'flex';
+	};
+}
+
+window.closeSettingsModal = function () {
+	settingsModal.style.display = 'none';
+};
+
+if (colorPrimaryInput) {
+	colorPrimaryInput.addEventListener('input', (e) => {
+		const val = e.target.value;
+		valPrimary.innerText = val;
+		applyTheme(val, colorAccentInput.value, colorBgInput.value);
+	});
+}
+
+if (colorAccentInput) {
+	colorAccentInput.addEventListener('input', (e) => {
+		const val = e.target.value;
+		valAccent.innerText = val;
+		applyTheme(colorPrimaryInput.value, val, colorBgInput.value);
+	});
+}
+
+if (colorBgInput) {
+	colorBgInput.addEventListener('input', (e) => {
+		const val = e.target.value;
+		valBg.innerText = val;
+		applyTheme(colorPrimaryInput.value, colorAccentInput.value, val);
+	});
+}
+
+if (btnResetTheme) {
+	btnResetTheme.onclick = () => {
+		// Reseta para os valores definidos no CSS ou hardcoded aqui
+		const pads = { p: '#0067b8', a: '#ff6f00', b: '#f4f7f6' };
+		applyTheme(pads.p, pads.a, pads.b);
+		updateInputs(pads.p, pads.a, pads.b);
+	};
+}
+
+// Iniciar Tema ao Carregar
+document.addEventListener('DOMContentLoaded', initTheme);
