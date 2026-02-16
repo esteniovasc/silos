@@ -524,8 +524,16 @@ body {
 	}
 
 	.header-actions-right {
+		display: block;
+		/* Mostrar no mobile */
+		position: absolute;
+		top: 5px;
+		right: 10px;
+	}
+
+	.header-actions-right .root-node-placeholder {
 		display: none;
-		/* Esconder placeholder no mobile */
+		/* Esconder placeholder, manter só o botão */
 	}
 }
 
