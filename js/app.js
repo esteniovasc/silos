@@ -140,7 +140,7 @@ function renderLists() {
 			col.innerHTML = `
             <div class="list-header">
                 <span>${siloData.label}</span>
-                <span class="edit-silo-btn" data-id="${siloData.id}" style="cursor:pointer; opacity:0.5" title="Editar Silo">✏️</span>
+                <span class="edit-silo-btn" data-id="${siloData.id}" title="Editar Silo">✏️</span>
             </div>
             ${cardsHtml}
             <button class="btn-add-item" onclick="openItemForm('${siloData.id}')">+ Novo Item</button>
