@@ -242,6 +242,11 @@ body {
 	font-weight: bold;
 	text-transform: uppercase;
 	color: var(--primary);
+	max-width: 80px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-align: center;
 }
 
 .add-silo-btn {
@@ -432,7 +437,7 @@ body {
 	}
 
 	.silo-label {
-		max-width: 70px;
+		max-width: 60px;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
