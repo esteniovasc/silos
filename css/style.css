@@ -156,6 +156,24 @@ body {
 	display: flex;
 	gap: 40px;
 	z-index: 21;
+	overflow-x: auto;
+	width: fit-content;
+	/* Cresce com o conteúdo */
+	max-width: 100vw;
+	/* Limita à largura da tela */
+	margin: 0 auto;
+	/* Centraliza se menor que a tela */
+	padding: 10px 40px;
+	justify-content: flex-start;
+	/* Alinha itens ao início DESTE container */
+	box-sizing: border-box;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.silos-row::-webkit-scrollbar {
+	display: none;
+	/* Chrome, Safari, Opera */
 }
 
 /* ÁREA ROLÁVEL DAS LISTAS */
@@ -167,7 +185,7 @@ body {
 	position: relative;
 	padding-top: 20px;
 	display: flex;
-	/* justify-content: center; REMOVIDO */
+	/* padding-bottom: 20px;  Adicionado se precisar de espaço para scroll */
 }
 
 .lists-row {
@@ -198,6 +216,8 @@ body {
 	transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 	position: relative;
+	flex-shrink: 0;
+	/* Impede achatamento */
 	background: white;
 }
 
@@ -228,14 +248,18 @@ body {
 	width: 50px;
 	height: 50px;
 	border-radius: 50%;
-	border: 2px dashed #ccc;
+	border: 2px dashed var(--line-color);
+	background: transparent;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
+	color: var(--line-color);
+	font-size: 24px;
+	transition: all 0.2s;
 	align-self: center;
-	color: #888;
-	font-size: 20px;
+	flex-shrink: 0;
+	/* Impede achatamento */
 }
 
 .add-silo-btn:hover {
@@ -378,4 +402,90 @@ body {
 	float: right;
 	cursor: pointer;
 	font-size: 20px;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 768px) {
+	.silos-row {
+		gap: 15px;
+		/* Menor espaço */
+		padding: 10px 20px;
+		width: 100%;
+		/* No mobile usa toda largura */
+		justify-content: flex-start;
+	}
+
+	.root-node {
+		width: 80px;
+		/* Aumentado de 50px */
+		height: 80px;
+		font-size: 12px;
+		margin-bottom: 20px;
+		border-width: 3px;
+	}
+
+	.silo-ball {
+		width: 80px;
+		/* Aumentado de 50px */
+		height: 80px;
+		font-size: 0.9rem;
+	}
+
+	.silo-label {
+		max-width: 70px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		font-size: 10px;
+		text-align: center;
+		margin-top: 2px;
+	}
+
+	.silo-icon {
+		font-size: 1.5rem;
+	}
+
+	.add-silo-btn {
+		width: 60px;
+		/* Ajustado proporcionalmente */
+		height: 60px;
+		font-size: 24px;
+	}
+
+	/* HEADER MOBILE */
+	.header-top-bar {
+		padding: 5px 10px;
+		grid-template-columns: 1fr;
+		/* Coluna única */
+		justify-items: center;
+		gap: 5px;
+		margin-bottom: 5px;
+	}
+
+	.header-actions-left {
+		width: 100%;
+		justify-content: center;
+		/* Botões centralizados acima */
+		gap: 20px;
+	}
+
+	.header-btn {
+		padding: 6px 10px;
+	}
+
+	/* Esconder texto dos botões no mobile */
+	.btn-text {
+		display: none;
+	}
+
+	#project-title {
+		font-size: 1.2rem;
+		order: 2;
+		/* Título abaixo dos botões */
+	}
+
+	.header-actions-right {
+		display: none;
+		/* Esconder placeholder no mobile */
+	}
 }

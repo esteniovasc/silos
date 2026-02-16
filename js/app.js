@@ -205,6 +205,11 @@ if (scrollContainer) {
 	scrollContainer.addEventListener('scroll', () => requestAnimationFrame(drawLines));
 }
 
+// Redesenha ao rolar os silos (Novo)
+if (silosContainer) {
+	silosContainer.addEventListener('scroll', () => requestAnimationFrame(drawLines));
+}
+
 // Redesenha ao fim de transições CSS (ex: hover, aberturas)
 listsContainer.addEventListener('transitionend', drawLines);
 
