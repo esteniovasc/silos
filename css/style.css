@@ -186,9 +186,12 @@ body {
 	/* Cresce com o conteúdo */
 	max-width: 100vw;
 	/* Limita à largura da tela */
-	margin: 0 auto;
+	/* Limita à largura da tela */
+	margin: 0 auto -30px auto;
+	/* Compensa o padding extra */
 	/* Centraliza se menor que a tela */
-	padding: 10px 40px;
+	padding: 10px 40px 40px 40px;
+	/* Espaço extra para sombra não cortar */
 	justify-content: flex-start;
 	/* Alinha itens ao início DESTE container */
 	box-sizing: border-box;
@@ -436,10 +439,13 @@ body {
 	.silos-row {
 		gap: 15px;
 		/* Menor espaço */
-		padding: 10px 20px;
+		padding: 10px 20px 30px 20px;
+		/* Mais espaço embaixo para sombra */
 		width: 100%;
 		/* No mobile usa toda largura */
 		justify-content: flex-start;
+		margin-bottom: 0;
+		/* Remove margem negativa desktop */
 	}
 
 	.root-node {
