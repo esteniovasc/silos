@@ -525,3 +525,38 @@ body {
 		/* Esconder placeholder no mobile */
 	}
 }
+
+/* MELHORIA DE UX: Desativar seleção de texto em elementos interativos */
+.silo-ball,
+.root-node,
+.header-btn,
+#btn-toggle-all,
+.add-silo-btn,
+.list-header,
+.btn-add-item,
+#project-title,
+.edit-overlay,
+.item-card,
+.modal h2,
+.modal button,
+.close-btn,
+#modal-link,
+.modal label {
+	-webkit-user-select: none;
+	/* Safari */
+	-moz-user-select: none;
+	/* Firefox */
+	-ms-user-select: none;
+	/* IE10+/Edge */
+	user-select: none;
+	/* Standard */
+}
+
+/* Exception: Permitir selecionar título do item na visualização (modal-title) */
+#modal-title {
+	-webkit-user-select: text;
+	-moz-user-select: text;
+	-ms-user-select: text;
+	user-select: text;
+	cursor: text;
+}
