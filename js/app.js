@@ -127,6 +127,7 @@ function renderLists() {
 
 	// Força redesenho imediato
 	requestAnimationFrame(drawLines);
+	updateToggleAllBtn();
 }
 
 // Event Delegation for Lists Container (Items and Edit Button)
@@ -583,6 +584,49 @@ const APP_VERSION = 1;
 
 document.getElementById('btn-export-json').addEventListener('click', exportProject);
 document.getElementById('json-input').addEventListener('change', importProject);
+document.getElementById('btn-toggle-all').addEventListener('click', toggleAllSilos);
+
+function toggleAllSilos() {
+	const allSiloIds = appData.map(s => s.id);
+	const areAllActive = allSiloIds.every(id => activeSilos.includes(id));
+
+	if (areAllActive) {
+		// Fechar Todos
+		activeSilos = [];
+	} else {
+		// Abrir Todos
+		activeSilos = [...allSiloIds];
+	}
+
+	// Atualiza UI
+	const siloElements = document.querySelectorAll('.silo-ball');
+	siloElements.forEach(el => {
+		if (activeSilos.includes(el.id.replace('silo-', ''))) {
+			el.classList.add('active');
+		} else {
+			el.classList.remove('active');
+		}
+	});
+
+	renderLists();
+}
+
+function updateToggleAllBtn() {
+	const btn = document.getElementById('btn-toggle-all');
+	if (!btn) return;
+
+	const allSiloIds = appData.map(s => s.id);
+	// Verifica se TODOS os silos do appData estão em activeSilos
+	const areAllActive = allSiloIds.length > 0 && allSiloIds.every(id => activeSilos.includes(id));
+
+	if (areAllActive) {
+		btn.innerHTML = '🙈 <span class="btn-text"></span>';
+		btn.title = "Fechar Todos os Silos";
+	} else {
+		btn.innerHTML = '👁️ <span class="btn-text"></span>';
+		btn.title = "Abrir Todos os Silos";
+	}
+}
 
 function exportProject() {
 	const projectData = {
