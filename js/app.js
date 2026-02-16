@@ -868,3 +868,81 @@ if (btnResetTheme) {
 
 // Iniciar Tema ao Carregar
 document.addEventListener('DOMContentLoaded', initTheme);
+
+// ================= FECHAR MODAIS (UX) =================
+
+// Preferências do Usuário (Default: true)
+let closeOnEsc = localStorage.getItem('silos-ux-esc') !== 'false';
+let closeOnOverlay = localStorage.getItem('silos-ux-overlay') !== 'false';
+
+// Checkboxes de Configuração
+const toggleEsc = document.getElementById('toggle-esc');
+const toggleOverlay = document.getElementById('toggle-overlay');
+
+// Inicializar Checkboxes
+if (toggleEsc) {
+	toggleEsc.checked = closeOnEsc;
+	toggleEsc.addEventListener('change', (e) => {
+		closeOnEsc = e.target.checked;
+		localStorage.setItem('silos-ux-esc', closeOnEsc);
+	});
+}
+
+if (toggleOverlay) {
+	toggleOverlay.checked = closeOnOverlay;
+	toggleOverlay.addEventListener('change', (e) => {
+		closeOnOverlay = e.target.checked;
+		localStorage.setItem('silos-ux-overlay', closeOnOverlay);
+	});
+}
+
+// 1. Fechar com ESC (Respeitando preferência)
+document.addEventListener('keydown', (e) => {
+	if (closeOnEsc && e.key === 'Escape') {
+		closeAnyOpenModal();
+	}
+});
+
+// 2. Fechar ao Clicar Fora (Respeitando preferência)
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+	overlay.addEventListener('click', (e) => {
+		if (closeOnOverlay && e.target === overlay) {
+			closeAnyOpenModal();
+		}
+	});
+});
+
+function closeAnyOpenModal() {
+	// Verifica qual está visível e chama a função específica para garantir limpeza de estado
+	// Ordem importa: Modais "por cima" de outros devem fechar primeiro (ex: Confirm Delete sobre Edit Silo)
+
+	const deleteModal = document.getElementById('delete-modal');
+	if (deleteModal && deleteModal.style.display === 'flex') {
+		closeDeleteModal();
+		return;
+	}
+
+	const settings = document.getElementById('settings-modal');
+	if (settings && settings.style.display === 'flex') {
+		closeSettingsModal();
+		return;
+	}
+
+	const siloModal = document.getElementById('silo-modal');
+	if (siloModal && siloModal.style.display === 'flex') {
+		closeSiloModal();
+		return;
+	}
+
+	const itemForm = document.getElementById('item-form-modal');
+	if (itemForm && itemForm.style.display === 'flex') {
+		closeItemForm();
+		return;
+	}
+
+	const detailsModal = document.getElementById('modal');
+	if (detailsModal && detailsModal.style.display === 'flex') {
+		closeModal();
+		return;
+	}
+}
