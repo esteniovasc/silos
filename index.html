@@ -21,11 +21,32 @@
 		</svg>
 
 		<header id="sticky-header">
-			<h1 id="project-title" contenteditable="true" spellcheck="false"
-				style="margin: 0 0 10px 0; color: var(--primary); font-size: 1.5rem; cursor: pointer; outline: none; border-bottom: 2px solid transparent; transition: border-color 0.2s;"
-				title="Clique para editar o nome do projeto">
-				Meu Projeto Silos
-			</h1>
+
+			<!-- Barra de Ferramentas Superior (Grid) -->
+			<div class="header-top-bar">
+				<!-- Esquerda: Ações -->
+				<div class="header-actions-left">
+					<button id="btn-export-json" title="Salvar Projeto (JSON)" class="header-btn">
+						💾 Salvar
+					</button>
+					<button onclick="document.getElementById('json-input').click()" title="Abrir Projeto (JSON)"
+						class="header-btn">
+						📂 Abrir
+					</button>
+					<input type="file" id="json-input" accept=".json" style="display: none;">
+				</div>
+
+				<!-- Centro: Título do Projeto -->
+				<h1 id="project-title" contenteditable="true" spellcheck="false"
+					title="Clique para editar o nome do projeto">
+					Meu Projeto Silos
+				</h1>
+
+				<!-- Direita: Placeholder (Futuras Configurações) -->
+				<div class="header-actions-right">
+					<!-- Botão de Configurações virá aqui -->
+				</div>
+			</div>
 
 			<div class="root-node" id="root">
 				<!-- Imagem da Logo -->

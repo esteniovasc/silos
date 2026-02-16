@@ -571,3 +571,83 @@ projectTitle.addEventListener('keydown', (e) => {
 		projectTitle.blur(); // Dispara o saveProjectName
 	}
 });
+
+// ================= IMPORTAR / EXPORTAR JSON =================
+
+const APP_VERSION = 1;
+
+document.getElementById('btn-export-json').addEventListener('click', exportProject);
+document.getElementById('json-input').addEventListener('change', importProject);
+
+function exportProject() {
+	const projectData = {
+		meta: {
+			version: APP_VERSION,
+			app: "SilosApp",
+			timestamp: Date.now()
+		},
+		data: {
+			projectName: localStorage.getItem('silos-project-name') || "Meu Projeto Silos",
+			silos: appData,
+			customLogo: localStorage.getItem('silos-custom-logo')
+		}
+	};
+
+	const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
+	const url = URL.createObjectURL(blob);
+
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = `${projectData.data.projectName.toLowerCase().replace(/\s+/g, '-')}-silos-app.json`;
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
+	URL.revokeObjectURL(url);
+}
+
+function importProject(event) {
+	const file = event.target.files[0];
+	if (!file) return;
+
+	const reader = new FileReader();
+	reader.onload = (e) => {
+		try {
+			const json = JSON.parse(e.target.result);
+
+			// Validação Básica
+			if (!json.meta || !json.data) {
+				throw new Error("Formato de arquivo inválido.");
+			}
+
+			// Migração de Versão (Futuro)
+			// if (json.meta.version < APP_VERSION) { ... }
+
+			// Aplicar Dados
+			if (json.data.projectName) {
+				localStorage.setItem('silos-project-name', json.data.projectName);
+				projectTitle.innerText = json.data.projectName;
+				document.title = `${json.data.projectName} | SilosApp`;
+			}
+
+			if (json.data.customLogo) {
+				localStorage.setItem('silos-custom-logo', json.data.customLogo);
+				document.getElementById('logo-img').src = json.data.customLogo;
+			}
+
+			if (json.data.silos) {
+				appData = json.data.silos;
+				saveData(); // Salva silos no LocalStorage
+			}
+
+			renderSilos();
+			renderLists();
+			alert('Projeto carregado com sucesso!');
+
+		} catch (err) {
+			console.error(err);
+			alert('Erro ao carregar projeto: ' + err.message);
+		}
+	};
+	reader.readAsText(file);
+	event.target.value = ''; // Resetar input
+}
