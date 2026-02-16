@@ -104,9 +104,9 @@ function renderLists() {
 			col.id = `list-${siloData.id}`;
 
 			let cardsHtml = '';
-			siloData.items.forEach(item => {
+			siloData.items.forEach((item, index) => {
 				cardsHtml += `
-                <div class="item-card" data-title="${item.title}" data-desc="${item.desc}" data-link="${item.link}">
+                <div class="item-card" data-silo-id="${siloData.id}" data-item-index="${index}">
                     <div class="item-title">${item.title}</div>
                     <div class="item-desc">${item.desc}</div>
                 </div>
@@ -119,7 +119,7 @@ function renderLists() {
                 <span class="edit-silo-btn" data-id="${siloData.id}" style="cursor:pointer; opacity:0.5" title="Editar Silo">✏️</span>
             </div>
             ${cardsHtml}
-            <button class="btn-add-item" onclick="alert('Funcionalidade futura: Criar novo item em ${siloData.label}')">+ Novo Item</button>
+            <button class="btn-add-item" onclick="openItemForm('${siloData.id}')">+ Novo Item</button>
         `;
 			listsContainer.appendChild(col);
 		}
@@ -134,8 +134,8 @@ listsContainer.addEventListener('click', (e) => {
 	// 1. Clique no card (Detalhes)
 	const card = e.target.closest('.item-card');
 	if (card) {
-		const { title, desc, link } = card.dataset;
-		openModal(title, desc, link);
+		const { siloId, itemIndex } = card.dataset;
+		openModal(siloId, parseInt(itemIndex)); // Passa IDs para busca in-loco
 		return;
 	}
 
@@ -353,12 +353,112 @@ function executeDelete(id) {
 
 window.closeDeleteModal = closeDeleteModal;
 
-// ================= MODAL DE DETALHES =================
+// ================= CRUD ITENS =================
+let currentItemSiloId = null;
+let currentItemIndex = null;
 
-function openModal(title, desc, link) {
-	document.getElementById('modal-title').innerText = title;
-	document.getElementById('modal-desc').innerText = desc;
-	document.getElementById('modal-link').href = link;
+function openItemForm(siloId, itemIndex = null) {
+	currentItemSiloId = siloId;
+	currentItemIndex = itemIndex;
+
+	const modal = document.getElementById('item-form-modal');
+	const titleHeader = document.getElementById('item-form-title');
+	const titleInput = document.getElementById('item-title-input');
+	const descInput = document.getElementById('item-desc-input');
+	const linkInput = document.getElementById('item-link-input');
+	const btnDelete = document.getElementById('btn-delete-item');
+
+	if (itemIndex !== null) {
+		// Editar
+		const silo = appData.find(s => s.id === siloId);
+		const item = silo.items[itemIndex];
+
+		titleHeader.innerText = 'Editar Item';
+		titleInput.value = item.title;
+		descInput.value = item.desc;
+		linkInput.value = item.link || '';
+
+		btnDelete.style.display = 'block';
+		btnDelete.onclick = () => deleteItem(siloId, itemIndex);
+	} else {
+		// Novo
+		titleHeader.innerText = 'Novo Item';
+		titleInput.value = '';
+		descInput.value = '';
+		linkInput.value = '';
+		btnDelete.style.display = 'none';
+	}
+
+	modal.style.display = 'flex';
+}
+
+function closeItemForm() {
+	document.getElementById('item-form-modal').style.display = 'none';
+	currentItemSiloId = null;
+	currentItemIndex = null;
+}
+
+function saveItem() {
+	const title = document.getElementById('item-title-input').value;
+	const desc = document.getElementById('item-desc-input').value;
+	const link = document.getElementById('item-link-input').value;
+
+	if (!title) return alert('Título é obrigatório');
+
+	const silo = appData.find(s => s.id === currentItemSiloId);
+	if (!silo) return;
+
+	if (currentItemIndex !== null) {
+		// Atualizar
+		silo.items[currentItemIndex] = { title, desc, link };
+	} else {
+		// Criar
+		silo.items.push({ title, desc, link });
+	}
+
+	saveData();
+	renderLists();
+	closeItemForm();
+	closeModal(); // Fecha modal de detalhes se estiver aberto
+}
+
+function deleteItem(siloId, index) {
+	if (!confirm('Excluir este item?')) return;
+
+	const silo = appData.find(s => s.id === siloId);
+	if (silo) {
+		silo.items.splice(index, 1);
+		saveData();
+		renderLists();
+		closeItemForm();
+		closeModal();
+	}
+}
+
+// Botões do Modal de Item
+document.getElementById('btn-save-item').addEventListener('click', saveItem);
+window.closeItemForm = closeItemForm;
+window.openItemForm = openItemForm;
+
+// ================= MODAL DE DETALHES (LEITURA) =================
+
+function openModal(siloId, itemIndex) {
+	const silo = appData.find(s => s.id === siloId);
+	if (!silo || !silo.items[itemIndex]) return;
+
+	const item = silo.items[itemIndex];
+
+	document.getElementById('modal-title').innerText = item.title;
+	document.getElementById('modal-desc').innerText = item.desc;
+	document.getElementById('modal-link').href = item.link || '#';
+
+	// Botão Editar no Modal de Detalhes
+	const btnEdit = document.getElementById('btn-edit-item-details');
+	btnEdit.onclick = () => {
+		closeModal();
+		openItemForm(siloId, itemIndex);
+	};
+
 	document.getElementById('modal').style.display = 'flex';
 }
 
@@ -369,6 +469,7 @@ function closeModal() {
 window.closeModal = closeModal;
 const closeBtn = document.querySelector('.close-btn');
 if (closeBtn) closeBtn.onclick = closeModal;
+
 
 // Inicia desenhando
 requestAnimationFrame(drawLines);

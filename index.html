@@ -50,14 +50,57 @@
 		</div>
 	</div>
 
-	<!-- Modal de Detalhes do Item -->
+	<!-- Modal de Detalhes do Item (Visualização) -->
 	<div class="modal-overlay" id="modal">
 		<div class="modal">
 			<span class="close-btn" onclick="closeModal()">&times;</span>
 			<h2 id="modal-title" style="color: var(--primary); margin-top: 0;">Título</h2>
 			<div id="modal-desc" style="margin: 15px 0; line-height: 1.6; color: #444;">Descrição...</div>
-			<a id="modal-link" href="#" target="_blank"
-				style="display: inline-block; background: var(--accent); color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Acessar</a>
+
+			<div style="display: flex; gap: 10px; margin-top: 15px;">
+				<a id="modal-link" href="#" target="_blank"
+					style="flex: 1; text-align: center; background: var(--accent); color: white; padding: 10px; text-decoration: none; border-radius: 5px; font-weight: bold;">Acessar</a>
+				<button id="btn-edit-item-details"
+					style="background: #eef2f5; border: 1px solid #ccc; color: #666; padding: 10px 15px; border-radius: 5px; cursor: pointer;">✏️
+					Editar</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal de Formulário de Item (Criar/Editar) -->
+	<div class="modal-overlay" id="item-form-modal">
+		<div class="modal" style="max-width: 400px;">
+			<h2 id="item-form-title" style="margin-top: 0; color: var(--primary);">Novo Item</h2>
+
+			<div style="margin-bottom: 10px;">
+				<label style="display:block; font-weight:bold; margin-bottom:5px;">Título</label>
+				<input type="text" id="item-title-input"
+					style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+			</div>
+
+			<div style="margin-bottom: 10px;">
+				<label style="display:block; font-weight:bold; margin-bottom:5px;">Descrição</label>
+				<textarea id="item-desc-input" rows="3"
+					style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+			</div>
+
+			<div style="margin-bottom: 15px;">
+				<label style="display:block; font-weight:bold; margin-bottom:5px;">Link (Opcional)</label>
+				<input type="text" id="item-link-input"
+					style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+					placeholder="https://...">
+			</div>
+
+			<div style="display: flex; justify-content: space-between; margin-top: 20px;">
+				<button id="btn-delete-item"
+					style="background: #ff4444; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; display: none;">Excluir</button>
+				<div style="display: flex; gap: 10px; margin-left: auto;">
+					<button onclick="closeItemForm()"
+						style="background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Cancelar</button>
+					<button id="btn-save-item"
+						style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Salvar</button>
+				</div>
+			</div>
 		</div>
 	</div>
 
