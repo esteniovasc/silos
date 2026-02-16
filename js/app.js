@@ -535,3 +535,39 @@ function handleLogoFile(file) {
 	};
 	reader.readAsDataURL(file);
 }
+
+// ================= NOME DO PROJETO =================
+const projectTitle = document.getElementById('project-title');
+const defaultTitle = "Meu Projeto Silos";
+
+// 1. Carregar Nome Salvo
+const savedProjectName = localStorage.getItem('silos-project-name');
+if (savedProjectName) {
+	projectTitle.innerText = savedProjectName;
+	document.title = `${savedProjectName} | SilosApp`;
+} else {
+	projectTitle.innerText = defaultTitle;
+	document.title = `${defaultTitle} | SilosApp`;
+}
+
+// 2. Salvar ao perder foco ou dar Enter
+function saveProjectName() {
+	const newName = projectTitle.innerText.trim() || defaultTitle;
+	projectTitle.innerText = newName; // Remove quebras de linha extras
+	localStorage.setItem('silos-project-name', newName);
+	document.title = `${newName} | SilosApp`;
+	projectTitle.style.borderBottomColor = 'transparent';
+}
+
+projectTitle.addEventListener('focus', () => {
+	projectTitle.style.borderBottomColor = 'var(--accent)';
+});
+
+projectTitle.addEventListener('blur', saveProjectName);
+
+projectTitle.addEventListener('keydown', (e) => {
+	if (e.key === 'Enter') {
+		e.preventDefault(); // Evita pular linha
+		projectTitle.blur(); // Dispara o saveProjectName
+	}
+});
