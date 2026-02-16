@@ -92,6 +92,30 @@ function toggleSilo(key) {
 		siloElement.classList.add('active');
 	}
 	renderLists();
+	animateLines(); // Inicia loop de redesenho para acompanhar animação CSS
+}
+
+// Loop de animação para garantir que as linhas acompanhem transições CSS
+let animationFrameId;
+const ANIMATION_DURATION = 500; // ms (deve ser maior que a transição CSS de 0.3s)
+
+function animateLines() {
+	const startTime = performance.now();
+
+	function loop(currentTime) {
+		const elapsed = currentTime - startTime;
+
+		drawLines(); // Redesenha a cada frame
+
+		if (elapsed < ANIMATION_DURATION) {
+			animationFrameId = requestAnimationFrame(loop);
+		}
+	}
+
+	// Cancela anterior se houver (para não empilhar loops)
+	if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+	animationFrameId = requestAnimationFrame(loop);
 }
 
 function renderLists() {
@@ -609,6 +633,7 @@ function toggleAllSilos() {
 	});
 
 	renderLists();
+	animateLines(); // Garante animação suave das linhas ao abrir/fechar todos
 }
 
 function updateToggleAllBtn() {
