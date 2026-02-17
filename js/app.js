@@ -1,6 +1,9 @@
 // ================= ESTADO E DADOS =================
-let activeSilos = [];
+// Recuperar estado da UI (Silos abertos, etc)
+const savedUiState = JSON.parse(localStorage.getItem('silos-ui-state')) || {};
+let activeSilos = savedUiState.activeSilos || [];
 let appData = [];
+let modalReturnStack = [];
 
 // Dados Padrão (Caso não tenha nada salvo)
 const defaultData = [
@@ -90,6 +93,7 @@ function renderSilos() {
 	silosContainer.appendChild(addBtn);
 }
 renderSilos();
+renderLists();
 
 // ================= LÓGICA DE INTERAÇÃO =================
 
@@ -104,6 +108,11 @@ function toggleSilo(key) {
 		activeSilos.push(key);
 		siloElement.classList.add('active');
 	}
+	// Removed extra brace
+
+	// Salvar estado da UI
+	localStorage.setItem('silos-ui-state', JSON.stringify({ activeSilos }));
+
 	renderLists();
 	animateLines(); // Inicia loop de redesenho para acompanhar animação CSS
 }
@@ -594,6 +603,13 @@ let currentItemSiloId = null;
 let currentItemIndex = null;
 
 function openItemForm(siloId, itemIndex = null) {
+	// Verificar se o modal de detalhes está aberto e empilhar
+	const detailsModal = document.getElementById('modal');
+	if (detailsModal && detailsModal.style.display === 'flex') {
+		modalReturnStack.push('modal');
+		detailsModal.style.display = 'none';
+	}
+
 	currentItemSiloId = siloId;
 	currentItemIndex = itemIndex;
 
@@ -803,6 +819,13 @@ function closeItemForm() {
 	currentItemSiloId = null;
 	currentItemIndex = null;
 	resetDeleteBtnState(); // Reseta estado visual instantaneamente
+
+	// Voltar navegação (Pilha)
+	const returnTo = modalReturnStack.pop();
+	if (returnTo) {
+		const prevModal = document.getElementById(returnTo);
+		if (prevModal) prevModal.style.display = 'flex';
+	}
 }
 
 function saveItem() {
@@ -828,8 +851,19 @@ function saveItem() {
 
 	saveData();
 	renderLists();
+
+	// Verificar se veio do modal de detalhes (para atualizar conteúdo e voltar)
+	const cameFromDetails = (modalReturnStack[modalReturnStack.length - 1] === 'modal');
+	const sId = currentItemSiloId;
+	const iIdx = currentItemIndex;
+
 	closeItemForm();
-	closeModal(); // Fecha modal de detalhes se estiver aberto
+
+	if (cameFromDetails) {
+		openModal(sId, iIdx); // Recarrega com dados novos
+	} else {
+		closeModal();  // Garante que fecha se não veio de lá
+	}
 }
 
 function deleteItem(siloId, index) {
@@ -840,6 +874,12 @@ function deleteItem(siloId, index) {
 		silo.items.splice(index, 1);
 		saveData();
 		renderLists();
+
+		// Se veio do detalhes, remove da pilha pois o item não existe mais
+		if (modalReturnStack.length > 0 && modalReturnStack[modalReturnStack.length - 1] === 'modal') {
+			modalReturnStack.pop();
+		}
+
 		closeItemForm();
 		closeModal();
 	}
@@ -865,7 +905,6 @@ function openModal(siloId, itemIndex) {
 	// Botão Editar no Modal de Detalhes
 	const btnEdit = document.getElementById('btn-edit-item-details');
 	btnEdit.onclick = () => {
-		closeModal();
 		openItemForm(siloId, itemIndex);
 	};
 
@@ -1038,6 +1077,9 @@ function toggleAllSilos() {
 			el.classList.remove('active');
 		}
 	});
+
+	// Salvar estado da UI
+	localStorage.setItem('silos-ui-state', JSON.stringify({ activeSilos }));
 
 	renderLists();
 	animateLines(); // Garante animação suave das linhas ao abrir/fechar todos
