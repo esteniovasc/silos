@@ -686,8 +686,26 @@ function openSiloModal(siloId = null) {
 }
 
 function closeSiloModal() {
-	document.getElementById('silo-modal').style.display = 'none';
-	currentEditingSiloId = null;
+	closeModalAnimated('silo-modal', () => {
+		currentEditingSiloId = null;
+	});
+}
+
+function closeModalAnimated(modalId, onComplete) {
+	const modal = document.getElementById(modalId);
+	if (!modal) return;
+
+	// Força reflow para garantir reset de animação
+	void modal.offsetWidth;
+
+	modal.classList.add('closing');
+
+	// Aguarda fim da animação (0.2s no CSS)
+	setTimeout(() => {
+		modal.style.display = 'none';
+		modal.classList.remove('closing');
+		if (onComplete) onComplete();
+	}, 200);
 }
 
 // Botões do Modal
@@ -1056,17 +1074,21 @@ window.hideDeleteConfirmation = function () {
 
 
 function closeItemForm() {
-	document.getElementById('item-form-modal').style.display = 'none';
-	currentItemSiloId = null;
-	currentItemIndex = null;
-	resetDeleteBtnState(); // Reseta estado visual instantaneamente
+	closeModalAnimated('item-form-modal', () => {
+		currentItemSiloId = null;
+		currentItemIndex = null;
+		resetDeleteBtnState(); // Reseta estado visual instantaneamente
 
-	// Voltar navegação (Pilha)
-	const returnTo = modalReturnStack.pop();
-	if (returnTo) {
-		const prevModal = document.getElementById(returnTo);
-		if (prevModal) prevModal.style.display = 'flex';
-	}
+		// Voltar navegação (Pilha)
+		const returnTo = modalReturnStack.pop();
+		if (returnTo) {
+			const prevModal = document.getElementById(returnTo);
+			if (prevModal) {
+				prevModal.classList.remove('closing');
+				prevModal.style.display = 'flex';
+			}
+		}
+	});
 }
 
 function saveItem() {
@@ -1153,7 +1175,7 @@ function openModal(siloId, itemIndex) {
 }
 
 function closeModal() {
-	document.getElementById('modal').style.display = 'none';
+	closeModalAnimated('modal');
 }
 
 window.closeModal = closeModal;
@@ -1547,7 +1569,7 @@ if (btnSettings) {
 }
 
 window.closeSettingsModal = function () {
-	settingsModal.style.display = 'none';
+	closeModalAnimated('settings-modal');
 };
 
 if (colorPrimaryInput) {

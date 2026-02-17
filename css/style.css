@@ -445,6 +445,50 @@ body {
 	color: var(--primary);
 }
 
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes fadeOut {
+	from {
+		opacity: 1;
+	}
+
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes scaleIn {
+	from {
+		transform: scale(0.9);
+		opacity: 0;
+	}
+
+	to {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+@keyframes scaleOut {
+	from {
+		transform: scale(1);
+		opacity: 1;
+	}
+
+	to {
+		transform: scale(0.9);
+		opacity: 0;
+	}
+}
+
 /* MODAL DE DETALHES */
 .modal-overlay {
 	position: fixed;
@@ -457,6 +501,11 @@ body {
 	display: none;
 	align-items: center;
 	justify-content: center;
+	animation: fadeIn 0.3s ease forwards;
+}
+
+.modal-overlay.closing {
+	animation: fadeOut 0.2s ease forwards !important;
 }
 
 .modal {
@@ -467,6 +516,11 @@ body {
 	border-radius: 15px;
 	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 	position: relative;
+	animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.modal-overlay.closing .modal {
+	animation: scaleOut 0.2s ease forwards !important;
 }
 
 
