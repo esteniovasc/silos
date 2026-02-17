@@ -718,6 +718,40 @@ function clearInputError(inputElement) {
 	}
 }
 
+// ================= TOAST NOTIFICAÇÕES =================
+
+function showToast(message, type = 'info', duration = 5000) {
+	const container = document.getElementById('toast-container');
+	if (!container) return;
+
+	// Criar elemento do toast
+	const toast = document.createElement('div');
+	toast.className = `toast ${type}`;
+
+	// Ícone baseado no tipo (opcional, mas legal)
+	let icon = '';
+	if (type === 'success') icon = '✅';
+	if (type === 'error') icon = '❌';
+	if (type === 'info') icon = 'ℹ️';
+
+	toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+
+	// Adicionar ao container
+	container.appendChild(toast);
+
+	// Remover após duração
+	setTimeout(() => {
+		toast.classList.add('fade-out');
+		// Remover do DOM após animação de saída
+		toast.addEventListener('transitionend', () => {
+			toast.remove();
+		});
+	}, duration);
+}
+
+// Expor para uso global se necessário (embora usemos internamente aqui)
+window.showToast = showToast;
+
 // Lógica de Animação do Delete no Item
 window.showDeleteConfirmation = function () {
 	const initBtn = document.getElementById('btn-delete-init');
@@ -1088,11 +1122,13 @@ function importProject(event) {
 
 			renderSilos();
 			renderLists();
-			alert('Projeto carregado com sucesso!');
+			// alert('Projeto carregado com sucesso!');
+			showToast('Projeto carregado com sucesso!', 'success');
 
 		} catch (err) {
 			console.error(err);
-			alert('Erro ao carregar projeto: ' + err.message);
+			// alert('Erro ao carregar projeto: ' + err.message);
+			showToast('Erro ao carregar projeto: ' + err.message, 'error');
 		}
 	};
 	reader.readAsText(file);
