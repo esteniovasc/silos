@@ -847,3 +847,31 @@ body {
 		opacity: 1;
 	}
 }
+
+/* BOTÕES DO MODAL */
+.modal-btn {
+	transition: background-image 0.2s ease, transform 0.1s ease;
+}
+
+.modal-btn:hover {
+	text-decoration: underline !important;
+	/* Escurece apenas o fundo usando uma camada semi-transparente, sem afetar o texto */
+	background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
+	/* Removemos filter para não afetar o texto */
+	filter: none;
+}
+
+/* Botões de Exclusão (Negrito e Hover) */
+#btn-delete-silo,
+#btn-delete-init,
+#btn-confirm-delete {
+	font-weight: bold !important;
+}
+
+#btn-delete-silo:hover,
+#btn-delete-init:hover,
+#btn-confirm-delete:hover {
+	text-decoration: underline !important;
+	background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
+	filter: none;
+}

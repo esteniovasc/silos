@@ -159,9 +159,9 @@
 					</div>
 				</div>
 				<div style="display: flex; gap: 10px; margin-left: auto;">
-					<button onclick="closeItemForm()"
+					<button onclick="closeItemForm()" class="modal-btn cancel"
 						style="background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Cancelar</button>
-					<button id="btn-save-item"
+					<button id="btn-save-item" class="modal-btn save"
 						style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Salvar</button>
 				</div>
 			</div>
@@ -271,9 +271,9 @@
 				<button id="btn-delete-silo"
 					style="background: #ff4444; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; display: none;">Excluir</button>
 				<div style="display: flex; gap: 10px; margin-left: auto;">
-					<button onclick="closeSiloModal()"
+					<button onclick="closeSiloModal()" class="modal-btn cancel"
 						style="background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Cancelar</button>
-					<button id="btn-save-silo"
+					<button id="btn-save-silo" class="modal-btn save"
 						style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Salvar</button>
 				</div>
 			</div>
@@ -299,9 +299,9 @@
 			</p>
 
 			<div style="display: flex; justify-content: flex-end; gap: 10px;">
-				<button onclick="closeDeleteModal()"
+				<button onclick="closeDeleteModal()" class="modal-btn cancel"
 					style="background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Cancelar</button>
-				<button id="btn-confirm-delete"
+				<button id="btn-confirm-delete" class="modal-btn"
 					style="background: #ff4444; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Sim,
 					Excluir Tudo</button>
 			</div>
@@ -364,10 +364,10 @@
 			<hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
 
 			<div style="display: flex; justify-content: space-between;">
-				<button id="btn-reset-theme"
+				<button id="btn-reset-theme" class="modal-btn cancel"
 					style="background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Restaurar
 					Padrão</button>
-				<button onclick="closeSettingsModal()"
+				<button onclick="closeSettingsModal()" class="modal-btn save"
 					style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Concluir</button>
 			</div>
 		</div>
