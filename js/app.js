@@ -469,7 +469,14 @@ function saveSilo() {
 			// Se estiver editando e não trocou a imagem
 			if (!currentEditingSiloId) {
 				// Criação sem imagem -> Erro ou Fallback
-				alert('Selecione uma imagem ou insira uma URL');
+				// alert('Selecione uma imagem ou insira uma URL');
+				// return;
+				// Melhor visual:
+				if (siloIconUrl && siloIconUrl.offsetParent !== null) {
+					showInputError(siloIconUrl, 'Insira uma URL ou escolha um arquivo');
+				} else if (siloIconFile) {
+					showInputError(siloIconFile, 'Escolha uma imagem');
+				}
 				return;
 			}
 
@@ -478,13 +485,21 @@ function saveSilo() {
 			if (current && current.iconType !== 'emoji') {
 				iconValue = current.iconValue || current.icon;
 			} else {
-				alert('Selecione uma imagem ou insira uma URL');
+				// alert('Selecione uma imagem ou insira uma URL');
+				if (siloIconUrl && siloIconUrl.offsetParent !== null) {
+					showInputError(siloIconUrl, 'Insira uma URL ou escolha um arquivo');
+				} else {
+					showInputError(siloIconFile, 'Escolha uma imagem');
+				}
 				return;
 			}
 		}
 	}
 
-	if (!name) return alert('Nome é obrigatório');
+	if (!name) {
+		showInputError(document.getElementById('silo-name'), 'Nome é obrigatório');
+		return;
+	}
 
 	// Objeto comum de update
 	const updates = {
@@ -662,6 +677,47 @@ function resetDeleteBtnState() {
 	}, 10);
 }
 
+// ================= VALIDAÇÃO VISUAL =================
+
+function showInputError(inputElement, message) {
+	if (!inputElement) return;
+
+	// Adiciona classe de erro
+	inputElement.classList.add('input-error');
+
+	// Adiciona Animação Shake
+	inputElement.classList.add('shake');
+	// Remove a classe shake após a animação para poder tremer de novo se precisar
+	setTimeout(() => {
+		inputElement.classList.remove('shake');
+	}, 500);
+
+	// Verifica se já existe mensagem de erro
+	let errorMsg = inputElement.nextElementSibling;
+	if (!errorMsg || !errorMsg.classList.contains('error-message')) {
+		errorMsg = document.createElement('span');
+		errorMsg.className = 'error-message';
+		inputElement.parentNode.insertBefore(errorMsg, inputElement.nextSibling);
+	}
+	errorMsg.innerText = message;
+	errorMsg.style.display = 'block';
+
+	// Foca no input
+	inputElement.focus();
+
+	// Adiciona listener para limpar erro ao digitar
+	inputElement.addEventListener('input', () => clearInputError(inputElement), { once: true });
+}
+
+function clearInputError(inputElement) {
+	if (!inputElement) return;
+	inputElement.classList.remove('input-error');
+	const errorMsg = inputElement.nextElementSibling;
+	if (errorMsg && errorMsg.classList.contains('error-message')) {
+		errorMsg.style.display = 'none';
+	}
+}
+
 // Lógica de Animação do Delete no Item
 window.showDeleteConfirmation = function () {
 	const initBtn = document.getElementById('btn-delete-init');
@@ -720,7 +776,10 @@ function saveItem() {
 	const desc = document.getElementById('item-desc-input').value;
 	const link = document.getElementById('item-link-input').value;
 
-	if (!title) return alert('Título é obrigatório');
+	if (!title) {
+		showInputError(document.getElementById('item-title-input'), 'Título é obrigatório');
+		return;
+	}
 
 	const silo = appData.find(s => s.id === currentItemSiloId);
 	if (!silo) return;
