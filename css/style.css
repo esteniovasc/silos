@@ -469,6 +469,15 @@ body {
 
 /* RESPONSIVIDADE */
 @media (max-width: 768px) {
+
+	/* Modal Ajustado para Mobile */
+	.modal {
+		max-height: 80vh;
+		overflow-y: auto;
+		padding: 20px;
+		/* Reduz padding para ganhar espaço */
+	}
+
 	.silos-row {
 		gap: 15px;
 		/* Menor espaço */
