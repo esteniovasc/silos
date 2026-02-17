@@ -1,9 +1,10 @@
 // ================= ESTADO E DADOS =================
 // Recuperar estado da UI (Silos abertos, etc)
 const savedUiState = JSON.parse(localStorage.getItem('silos-ui-state')) || {};
-let activeSilos = savedUiState.activeSilos || [];
-let appData = [];
+let activeSilos = (savedUiState.activeSilos || []).filter(id => id !== null && id !== undefined);
+
 let modalReturnStack = [];
+let appData = [];
 
 // Dados Padrão (Caso não tenha nada salvo)
 const defaultData = [
@@ -38,13 +39,19 @@ const defaultData = [
 	}
 ];
 
-// Carregar Dados
-const savedData = localStorage.getItem('silos-app-data');
-if (savedData) {
-	appData = JSON.parse(savedData);
+// Recuperar dados do App com Segurança
+const savedAppData = localStorage.getItem('silos-app-data');
+if (savedAppData) {
+	try {
+		const parsed = JSON.parse(savedAppData);
+		appData = Array.isArray(parsed) ? parsed.filter(item => item && item.id) : [];
+		if (appData.length === 0) appData = [...defaultData];
+	} catch (e) {
+		console.error("Erro ao ler dados salvos, resetando.", e);
+		appData = [...defaultData];
+	}
 } else {
-	appData = defaultData;
-	saveData(); // Salva o padrão inicial
+	appData = [...defaultData];
 }
 
 function saveData() {
@@ -58,20 +65,35 @@ const scrollContainer = document.getElementById('scrollable-lists');
 const addBtn = document.querySelector('.add-silo-btn');
 
 // Renderiza as Bolas (Silos)
+// Renderiza as Bolas (Silos) e Drop Zones
 function renderSilos() {
-	// Limpa atuais (preservando botão + se quiser, ou recria tudo)
-	// Vamos manter o botão + no final
 	silosContainer.innerHTML = '';
 
-	appData.forEach(siloData => {
+	// Drop Zone Inicial (Índice 0)
+	createDropZone(0);
+
+	appData.forEach((siloData, index) => {
 		const silo = document.createElement('div');
 		silo.className = 'silo-ball';
 		silo.id = `silo-${siloData.id}`;
-		// Se já estava ativo antes do render, mantem active?
+		silo.draggable = true;
+		silo.title = siloData.label;
+
+		// Event Listeners de Drag & Drop no Silo
+		silo.addEventListener('dragstart', handleDragStart);
+		silo.addEventListener('dragover', handleDragOver);
+		silo.addEventListener('dragenter', handleDragEnter);
+		silo.addEventListener('dragleave', handleDragLeave);
+		silo.addEventListener('drop', handleDrop);
+		silo.addEventListener('dragend', handleDragEnd);
+
 		if (activeSilos.includes(siloData.id)) silo.classList.add('active');
 
-		silo.onclick = () => toggleSilo(siloData.id);
-		// Renderiza Ícone baseado no tipo
+		silo.onclick = (e) => {
+			toggleSilo(siloData.id);
+		};
+
+		// Ícone
 		let iconHtml = '';
 		const iconType = siloData.iconType || 'emoji';
 		const iconValue = siloData.iconValue || siloData.icon;
@@ -89,8 +111,25 @@ function renderSilos() {
             ${iconType !== 'full' ? `<div class="silo-label">${siloData.label}</div>` : ''}
         `;
 		silosContainer.appendChild(silo);
+
+		// Drop Zone pós-item (Índice atual + 1)
+		createDropZone(index + 1);
 	});
+
 	silosContainer.appendChild(addBtn);
+}
+
+function createDropZone(index) {
+	const zone = document.createElement('div');
+	zone.className = 'drop-zone';
+	zone.dataset.index = index;
+
+	// Eventos da Zona
+	zone.addEventListener('dragover', handleZoneDragOver);
+	zone.addEventListener('dragleave', handleZoneDragLeave);
+	zone.addEventListener('drop', handleZoneDrop);
+
+	silosContainer.appendChild(zone);
 }
 renderSilos();
 renderLists();
@@ -267,6 +306,208 @@ listsContainer.addEventListener('animationend', drawLines);
 const resizeObserver = new ResizeObserver(() => requestAnimationFrame(drawLines));
 resizeObserver.observe(listsContainer);
 resizeObserver.observe(silosContainer);
+
+// ================= DRAG & DROP SILOS (HÍBRIDO: SWAP + INSERT) =================
+let draggedSiloId = null;
+
+function handleDragStart(e) {
+	draggedSiloId = this.id.replace('silo-', '');
+	this.style.opacity = '0.4';
+	e.dataTransfer.effectAllowed = 'move';
+	e.dataTransfer.setData('text/plain', draggedSiloId);
+
+	// Identificar índice do item arrastado
+	const currentIndex = appData.findIndex(s => String(s.id) === String(draggedSiloId));
+
+	// Visual: Manter opacidade reduzida (já definido no início)
+
+	// Destaque visual nas zonas (exceto as adjacentes ao item)
+	document.querySelectorAll('.drop-zone').forEach(z => {
+		const zoneIndex = parseInt(z.dataset.index);
+		// Zona antes do item (currentIndex) e Zona depois do item (currentIndex + 1) são inúteis
+		if (zoneIndex !== currentIndex && zoneIndex !== currentIndex + 1) {
+			z.classList.add('active-zone');
+			z.style.pointerEvents = 'all';
+		} else {
+			z.style.pointerEvents = 'none'; // Desabilita interação com zonas inúteis
+		}
+	});
+}
+
+function handleDragEnd(e) {
+	this.style.opacity = '1';
+	draggedSiloId = null;
+
+	// Remove estilos das zonas
+	document.querySelectorAll('.drop-zone').forEach(z => {
+		z.classList.remove('active-zone');
+		z.classList.remove('drag-over-zone');
+	});
+	// Remove estilos dos silos
+	document.querySelectorAll('.silo-ball').forEach(el => el.classList.remove('drag-over'));
+}
+
+// Handler Drop Silo -> Silo (SWAP)
+function handleDragOver(e) {
+	if (e.preventDefault) {
+		e.preventDefault();
+	}
+	const targetId = this.id.replace('silo-', '');
+	if (targetId === draggedSiloId) return false; // Ignora a própria bola
+
+	e.dataTransfer.dropEffect = 'move';
+	return false;
+}
+
+function handleDragEnter(e) {
+	const targetId = this.id.replace('silo-', '');
+	if (targetId === draggedSiloId) return; // Ignora a própria bola
+
+	this.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+	this.classList.remove('drag-over');
+}
+
+// Handler Drop Silo -> Silo (SWAP)
+function handleDrop(e) {
+	e.stopPropagation();
+	const targetId = this.id.replace('silo-', '');
+
+	if (draggedSiloId !== targetId) {
+		swapSilos(draggedSiloId, targetId);
+	}
+	// Limpa estilo
+	this.classList.remove('drag-over');
+	return false;
+}
+
+// Handler Drop Zone -> Zone (INSERT)
+function handleZoneDragOver(e) {
+	e.preventDefault();
+	e.dataTransfer.dropEffect = 'move';
+	this.classList.add('drag-over-zone');
+}
+
+function handleZoneDragLeave(e) {
+	this.classList.remove('drag-over-zone');
+}
+
+function handleZoneDrop(e) {
+	e.stopPropagation();
+	this.classList.remove('drag-over-zone');
+
+	const targetIndex = parseInt(this.dataset.index);
+	if (draggedSiloId) {
+		moveSilo(draggedSiloId, targetIndex);
+	}
+	return false;
+}
+
+function swapSilos(id1, id2) {
+	if (id1 === id2) return;
+
+	animateReorder(() => {
+		const idx1 = appData.findIndex(s => String(s.id) === String(id1));
+		const idx2 = appData.findIndex(s => String(s.id) === String(id2));
+
+		if (idx1 > -1 && idx2 > -1) {
+			const temp = appData[idx1];
+			appData[idx1] = appData[idx2];
+			appData[idx2] = temp;
+
+			saveData();
+			renderSilos();
+			renderLists();
+		}
+	});
+}
+
+function moveSilo(siloId, targetIndex) {
+	const currentIndex = appData.findIndex(s => String(s.id) === String(siloId));
+	if (currentIndex === -1) return;
+
+	// Se o destino for o índice atual ou o próximo (após o item), é redundante
+	if (targetIndex === currentIndex || targetIndex === currentIndex + 1) return;
+
+	animateReorder(() => {
+		const [movedItems] = appData.splice(currentIndex, 1);
+		if (!movedItems) {
+			renderSilos();
+			return;
+		}
+
+		// Ajuste do índice
+		let finalIndex = targetIndex;
+		if (targetIndex > currentIndex) {
+			finalIndex = targetIndex - 1;
+		}
+
+		appData.splice(finalIndex, 0, movedItems);
+
+		saveData();
+		renderSilos();
+		renderLists();
+	});
+}
+
+// Helper: FLIP Animation (First, Last, Invert, Play)
+function animateReorder(updateStateFn) {
+	// 1. FIRST: Capturar posições atuais
+	const firstPositions = new Map();
+	document.querySelectorAll('.silo-ball').forEach(el => {
+		const id = el.id;
+		const rect = el.getBoundingClientRect();
+		firstPositions.set(id, rect);
+	});
+
+	// 2. UPDATE: Executar a mudança de estado e renderizar
+	updateStateFn();
+
+	// 3. LAST & INVERT & PLAY: Calcular delta e animar
+	const newSilos = document.querySelectorAll('.silo-ball');
+
+	newSilos.forEach(el => {
+		const id = el.id;
+		const firstRect = firstPositions.get(id);
+
+		if (firstRect) {
+			const lastRect = el.getBoundingClientRect();
+
+			// Delta
+			const dx = firstRect.left - lastRect.left;
+			const dy = firstRect.top - lastRect.top;
+
+			// Invert: Se houve movimento, aplicar transform para posição inicial
+			if (dx !== 0 || dy !== 0) {
+				// Remover transição para aplicar transform instantâneo
+				el.style.transition = 'none';
+				el.style.transform = `translate(${dx}px, ${dy}px)`;
+
+				// Forçar Reflow/Repaint
+				el.getBoundingClientRect();
+
+				// Play: Restaurar transição e remover transform (anima para 0,0)
+				requestAnimationFrame(() => {
+					el.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
+					el.style.transform = '';
+				});
+			}
+		}
+	});
+
+	// Atualiza linhas continuamente durante a animação
+	animateLines();
+}
+
+function updateDomSafely() {
+	// Função legado mantida para compatibilidade, mas agora o animateReorder cuida de tudo
+	saveData();
+	renderSilos();
+	renderLists();
+	requestAnimationFrame(drawLines);
+}
 
 
 // ================= CRUD SILOS =================

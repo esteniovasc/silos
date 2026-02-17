@@ -179,7 +179,7 @@ body {
 
 .silos-row {
 	display: flex;
-	gap: 40px;
+	gap: 10px;
 	z-index: 21;
 	overflow-x: auto;
 	width: fit-content;
@@ -190,7 +190,7 @@ body {
 	margin: 0 auto -30px auto;
 	/* Compensa o padding extra */
 	/* Centraliza se menor que a tela */
-	padding: 10px 40px 40px 40px;
+	padding: 40px 40px 40px 40px;
 	/* Espaço extra para sombra não cortar */
 	justify-content: flex-start;
 	/* Alinha itens ao início DESTE container */
@@ -254,11 +254,43 @@ body {
 	transform: translateY(-5px);
 }
 
+/* Drag & Drop Feedback */
+.silo-ball.drag-over {
+	transform: scale(1.1);
+	border-color: var(--accent);
+	box-shadow: 0 0 10px var(--accent);
+}
+
 .silo-ball.active {
 	border-color: var(--accent);
 	background: #fff8e1;
 	transform: scale(1.1);
 	box-shadow: 0 8px 15px rgba(255, 111, 0, 0.2);
+}
+
+/* Drag & Drop Feedback - Mais robusto */
+.silo-ball.drag-over {
+	transform: scale(1.15) !important;
+	/* Força escala maior que o active */
+	border: 3px dashed var(--accent) !important;
+	box-shadow: 0 0 20px var(--accent);
+	background: rgba(255, 111, 0, 0.1);
+	z-index: 100;
+}
+
+/* Feedback Específico para Silos Abertos */
+.silo-ball.active.drag-over {
+	background: #ffe0b2;
+	/* Laranja mais escuro que o active normal */
+	border-style: dashed;
+}
+
+.silo-icon,
+.silo-label,
+.silo-image-icon,
+.silo-full-image {
+	pointer-events: none;
+	/* Evita que o dragenter/leave dispare nos filhos, prevenindo flicker */
 }
 
 .silo-icon {
@@ -440,7 +472,7 @@ body {
 	.silos-row {
 		gap: 15px;
 		/* Menor espaço */
-		padding: 10px 20px 30px 20px;
+		padding: 30px 20px 30px 20px;
 		/* Mais espaço embaixo para sombra */
 		width: 100%;
 		/* No mobile usa toda largura */
@@ -874,4 +906,45 @@ body {
 	text-decoration: underline !important;
 	background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
 	filter: none;
+}
+
+/* DROP ZONES (Refinamento Drag & Drop) */
+.drop-zone {
+	width: 40px;
+	min-width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	border: 2px dashed #ddd;
+	background: rgba(255, 255, 255, 0.5);
+	margin: auto 0;
+	box-sizing: border-box;
+	/* Garante tamanho exato incluindo bordas */
+}
+
+.drop-zone:not(.active-zone) {
+	opacity: 0.3;
+	transform: scale(0.8);
+	border-color: transparent;
+	background: transparent;
+}
+
+.drop-zone.active-zone {
+	opacity: 1;
+	transform: scale(1);
+	border-color: #ddd;
+	background: rgba(255, 255, 255, 0.8);
+}
+
+.drop-zone.drag-over-zone {
+	width: 100px;
+	height: 100px;
+	min-width: 100px;
+	background: rgba(255, 111, 0, 0.1);
+	border-color: var(--accent);
+	box-shadow: 0 0 15px rgba(255, 111, 0, 0.2);
 }
