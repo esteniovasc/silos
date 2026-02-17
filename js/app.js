@@ -68,9 +68,22 @@ function renderSilos() {
 		if (activeSilos.includes(siloData.id)) silo.classList.add('active');
 
 		silo.onclick = () => toggleSilo(siloData.id);
+		// Renderiza Ícone baseado no tipo
+		let iconHtml = '';
+		const iconType = siloData.iconType || 'emoji';
+		const iconValue = siloData.iconValue || siloData.icon;
+
+		if (iconType === 'emoji') {
+			iconHtml = `<div class="silo-icon">${iconValue || '📁'}</div>`;
+		} else if (iconType === 'image') {
+			iconHtml = `<img src="${iconValue}" class="silo-image-icon" alt="icon">`;
+		} else if (iconType === 'full') {
+			iconHtml = `<img src="${iconValue}" class="silo-full-image" alt="cover">`;
+		}
+
 		silo.innerHTML = `
-            <div class="silo-icon">${siloData.icon}</div>
-            <div class="silo-label">${siloData.label}</div>
+            ${iconHtml}
+            ${iconType !== 'full' ? `<div class="silo-label">${siloData.label}</div>` : ''}
         `;
 		silosContainer.appendChild(silo);
 	});
@@ -250,16 +263,115 @@ resizeObserver.observe(silosContainer);
 // ================= CRUD SILOS =================
 
 let currentEditingSiloId = null;
+let tempSiloIconBase64 = null; // Armazena temporariamente a imagem recém carregada no modal
+
+// Elementos do Modal de Silo
+// const siloModalTypeSelect = document.getElementById('silo-icon-type'); // REMOVIDO
+const siloInputEmojiDiv = document.getElementById('silo-input-emoji');
+const siloInputImageDiv = document.getElementById('silo-input-image');
+const siloIconText = document.getElementById('silo-icon-text');
+const siloIconFile = document.getElementById('silo-icon-file');
+const siloIconUrl = document.getElementById('silo-icon-url'); // NOVO
+const siloIconPreview = document.getElementById('silo-icon-preview');
+const iconTypeRadios = document.getElementsByName('icon-type');
+
+// Event Listener para troca de Tipo de Ícone (Radio Buttons)
+iconTypeRadios.forEach(radio => {
+	radio.addEventListener('change', () => {
+		updateIconInputVisibility(radio.value);
+	});
+});
+
+function updateIconInputVisibility(type) {
+	if (type === 'emoji') {
+		siloInputEmojiDiv.style.display = 'block';
+		siloInputImageDiv.style.display = 'none';
+	} else {
+		// image ou full
+		siloInputEmojiDiv.style.display = 'none';
+		siloInputImageDiv.style.display = 'block';
+	}
+}
+
+// Event Listener para Upload de Imagem do Silo (Arquivo e URL)
+if (siloIconFile) {
+	siloIconFile.addEventListener('change', (e) => {
+		const file = e.target.files[0];
+		if (file) {
+			const reader = new FileReader();
+			reader.onload = (evt) => {
+				tempSiloIconBase64 = evt.target.result;
+				if (siloIconUrl) siloIconUrl.value = ''; // Limpa URL se carregou arquivo
+				updateSiloPreview(tempSiloIconBase64);
+			};
+			reader.readAsDataURL(file);
+		}
+	});
+}
+
+if (siloIconUrl) {
+	siloIconUrl.addEventListener('input', (e) => {
+		const url = e.target.value.trim();
+		if (url) {
+			tempSiloIconBase64 = url; // Usa a URL como valor
+			updateSiloPreview(url);
+		} else {
+			// Se apagou, tenta voltar para imagem anterior (se edição) ou limpa
+			if (currentEditingSiloId) {
+				const silo = appData.find(s => s.id === currentEditingSiloId);
+				if (silo && silo.iconValue && (silo.iconType === 'image' || silo.iconType === 'full')) {
+					// Restaura a imagem original do silo se houver
+					// Mas só se o usuário não tiver selecionado um arquivo novo.
+					// Como não trackeamos "arquivo x url" separadamente além de temp, 
+					// melhor apenas limpar o preview atual e zerar temp
+					tempSiloIconBase64 = null;
+					updateSiloPreview('');
+				} else {
+					tempSiloIconBase64 = null;
+					updateSiloPreview('');
+				}
+			} else {
+				tempSiloIconBase64 = null;
+				updateSiloPreview('');
+			}
+		}
+	});
+}
+
+function updateSiloPreview(src) {
+	const previewImg = document.getElementById('silo-icon-preview');
+	const previewLbl = document.getElementById('preview-label');
+
+	if (previewImg) {
+		if (src && src !== '📷') {
+			previewImg.src = src;
+			previewImg.style.display = 'block';
+			if (previewLbl) previewLbl.style.display = 'block';
+		} else {
+			previewImg.style.display = 'none';
+			if (previewLbl) previewLbl.style.display = 'none';
+		}
+	}
+}
 
 // Abrir Modal (Criar ou Editar)
 function openSiloModal(siloId = null) {
 	currentEditingSiloId = siloId;
+	tempSiloIconBase64 = null; // Reseta imagem temporária
+
 	const modal = document.getElementById('silo-modal');
 	const title = document.getElementById('silo-modal-title');
 	const nameInput = document.getElementById('silo-name');
-	const iconInput = document.getElementById('silo-icon');
-	const typeInput = document.getElementById('silo-type');
+	// const typeInput = document.getElementById('silo-type'); // REMOVIDO (Agora é radio)
 	const btnDelete = document.getElementById('btn-delete-silo');
+
+	// Resetar Inputs Visuais
+	if (siloIconPreview) {
+		siloIconPreview.src = '';
+		siloIconPreview.style.display = 'none';
+	}
+	if (siloIconFile) siloIconFile.value = '';
+	if (siloIconUrl) siloIconUrl.value = '';
 
 	if (siloId) {
 		// Modo Edição
@@ -268,17 +380,56 @@ function openSiloModal(siloId = null) {
 
 		title.innerText = 'Editar Silo';
 		nameInput.value = silo.label;
-		iconInput.value = silo.icon;
-		typeInput.value = silo.type || 'default';
+		// Setar Radio de Layout
+		const layoutType = silo.type || 'default';
+		const layoutRadio = document.querySelector(`input[name="layout-type"][value="${layoutType}"]`);
+		if (layoutRadio) layoutRadio.checked = true;
+
 		btnDelete.style.display = 'block';
 		btnDelete.onclick = () => deleteSilo(siloId);
+
+		// Configurar Campos de Ícone
+		const iconType = silo.iconType || 'emoji';
+
+		// Setar Radio Button
+		const radio = document.querySelector(`input[name="icon-type"][value="${iconType}"]`);
+		if (radio) radio.checked = true;
+
+		updateIconInputVisibility(iconType);
+
+		if (iconType === 'emoji') {
+			siloIconText.value = silo.iconValue || silo.icon || '📁';
+		} else {
+			// Se for imagem, mostra preview da atual
+			tempSiloIconBase64 = silo.iconValue || silo.icon;
+
+			// Se tempSiloIconBase64 for null ou undefined (ex: dado antigo), fallback
+			if (!tempSiloIconBase64 || tempSiloIconBase64 === '📷') tempSiloIconBase64 = null;
+
+			if (tempSiloIconBase64) {
+				updateSiloPreview(tempSiloIconBase64);
+				// Se for URL (começa com http), preenche o input de texto
+				if (tempSiloIconBase64.startsWith('http')) {
+					if (siloIconUrl) siloIconUrl.value = tempSiloIconBase64;
+				}
+			}
+		}
+
 	} else {
 		// Modo Criação
 		title.innerText = 'Novo Silo';
 		nameInput.value = '';
-		iconInput.value = '📁';
-		typeInput.value = 'default';
+		// Resetar Radio Layout para Default
+		const layoutRadio = document.querySelector(`input[name="layout-type"][value="default"]`);
+		if (layoutRadio) layoutRadio.checked = true;
 		btnDelete.style.display = 'none';
+
+		// Resetar Radio para Emoji
+		const radio = document.querySelector(`input[name="icon-type"][value="emoji"]`);
+		if (radio) radio.checked = true;
+		updateIconInputVisibility('emoji');
+
+		siloIconText.value = '📁';
 	}
 
 	modal.style.display = 'flex';
@@ -290,40 +441,80 @@ function closeSiloModal() {
 }
 
 // Botões do Modal
-window.closeSiloModal = closeSiloModal; // Expor para o HTML
+window.closeSiloModal = closeSiloModal;
+window.openSiloModal = openSiloModal; // IMPORTANTE: Expor para usar onclick
 document.getElementById('btn-save-silo').addEventListener('click', saveSilo);
-addBtn.addEventListener('click', () => openSiloModal(null)); // Conectar botão +
+addBtn.addEventListener('click', () => openSiloModal(null));
 
 function saveSilo() {
 	const name = document.getElementById('silo-name').value;
-	const icon = document.getElementById('silo-icon').value;
-	const type = document.getElementById('silo-type').value;
+
+	// Ler Radio Layout
+	const layoutRadio = document.querySelector('input[name="layout-type"]:checked');
+	const layoutType = layoutRadio ? layoutRadio.value : 'default';
+
+	// Ler Radio Button Checado
+	const selectedRadio = document.querySelector('input[name="icon-type"]:checked');
+	const iconType = selectedRadio ? selectedRadio.value : 'emoji';
+
+	let iconValue = '';
+
+	if (iconType === 'emoji') {
+		iconValue = siloIconText.value || '📁';
+	} else {
+		// Imagem ou Full
+		if (tempSiloIconBase64) {
+			iconValue = tempSiloIconBase64;
+		} else {
+			// Se estiver editando e não trocou a imagem
+			if (!currentEditingSiloId) {
+				// Criação sem imagem -> Erro ou Fallback
+				alert('Selecione uma imagem ou insira uma URL');
+				return;
+			}
+
+			// Tenta pegar do atual
+			const current = appData.find(s => s.id === currentEditingSiloId);
+			if (current && current.iconType !== 'emoji') {
+				iconValue = current.iconValue || current.icon;
+			} else {
+				alert('Selecione uma imagem ou insira uma URL');
+				return;
+			}
+		}
+	}
 
 	if (!name) return alert('Nome é obrigatório');
+
+	// Objeto comum de update
+	const updates = {
+		label: name,
+		type: layoutType,
+		iconType: iconType,
+		iconValue: iconValue,
+		// Fallback visual para sistemas que usam .icon antigo
+		icon: (iconType === 'emoji') ? iconValue : '📷'
+	};
 
 	if (currentEditingSiloId) {
 		// Editar
 		const silo = appData.find(s => s.id === currentEditingSiloId);
 		if (silo) {
-			silo.label = name;
-			silo.icon = icon;
-			silo.type = type;
+			Object.assign(silo, updates);
 		}
 	} else {
 		// Criar
 		const newId = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
 		appData.push({
 			id: newId,
-			label: name,
-			icon: icon,
-			type: type,
+			...updates,
 			items: []
 		});
 	}
 
 	saveData();
 	renderSilos();
-	renderLists(); // Atualiza cabeçalhos se algo mudou
+	renderLists();
 	closeSiloModal();
 }
 

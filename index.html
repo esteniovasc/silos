@@ -157,21 +157,89 @@
 					placeholder="Ex: Financeiro">
 			</div>
 
-			<div style="display: flex; gap: 15px; margin-bottom: 15px;">
-				<div style="flex: 1;">
-					<label style="display:block; font-weight:bold; margin-bottom:5px;">Ícone (Emoji)</label>
-					<input type="text" id="silo-icon"
-						style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center;"
-						placeholder="💰">
+			<!-- Seção: Tipo de Exibição do Ícone -->
+			<div style="margin-bottom: 20px;">
+				<label style="display:block; font-weight:bold; margin-bottom:8px;">1. Estilo do Ícone</label>
+				<div id="silo-icon-type-group" style="display: flex; gap: 15px; margin-bottom: 15px;">
+					<label style="cursor: pointer; font-size: 0.95em; display: flex; align-items: center; gap: 5px;">
+						<input type="radio" name="icon-type" value="emoji" checked>
+						<span>Emoji</span>
+					</label>
+					<label style="cursor: pointer; font-size: 0.95em; display: flex; align-items: center; gap: 5px;">
+						<input type="radio" name="icon-type" value="image">
+						<span>Ícone Personalizado</span>
+					</label>
+					<label style="cursor: pointer; font-size: 0.95em; display: flex; align-items: center; gap: 5px;">
+						<input type="radio" name="icon-type" value="full">
+						<span>Capa (Imagem Cheia)</span>
+					</label>
 				</div>
-				<div style="flex: 2;">
-					<label style="display:block; font-weight:bold; margin-bottom:5px;">Tipo de Layout</label>
-					<select id="silo-type"
-						style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-						<option value="default">Padrão</option>
-						<option value="project">Projetos (Largo)</option>
-						<option value="person">Pessoas (Cards)</option>
-					</select>
+
+				<!-- Input Emoji -->
+				<div id="silo-input-emoji" style="margin-bottom: 10px;">
+					<input type="text" id="silo-icon-text"
+						style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; text-align: center; font-size: 1.5rem;"
+						placeholder="📂">
+				</div>
+
+				<!-- Input Imagem -->
+				<div id="silo-input-image"
+					style="display: none; background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px dashed #ccc;">
+					<label style="font-size: 0.8em; color: #666; display: block; margin-bottom: 3px;">URL da
+						Imagem:</label>
+					<input type="text" id="silo-icon-url"
+						style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 6px; margin-bottom: 8px; font-size: 0.9rem;"
+						placeholder="https://...">
+
+					<div style="text-align: center; margin: 5px 0; font-size: 0.8em; color: #aaa;">- OU -</div>
+
+					<label style="font-size: 0.8em; color: #666; display: block; margin-bottom: 3px;">Upload do
+						Computador:</label>
+					<input type="file" id="silo-icon-file" accept="image/*" style="width: 100%; font-size: 0.9rem;">
+
+					<!-- Preview -->
+					<div style="margin-top: 10px; text-align: center;">
+						<img id="silo-icon-preview" src="" alt="Prévia"
+							style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; display: none; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+						<div id="preview-label" style="font-size: 0.7em; color: #999; margin-top: 4px; display: none;">
+							Prévia</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Seção: Tipo de Layout (Agora em Coluna e Radio Buttons) -->
+			<div style="margin-bottom: 10px;">
+				<label style="display:block; font-weight:bold; margin-bottom:8px;">2. Estilo do Conteúdo (Lista)</label>
+				<div style="display: flex; flex-direction: column; gap: 8px;">
+					<label
+						style="cursor: pointer; padding: 8px; border: 1px solid #eee; border-radius: 6px; display: flex; align-items: center; gap: 8px;">
+						<input type="radio" name="layout-type" value="default" checked>
+						<div>
+							<div style="font-weight: 600; font-size: 0.95em;">Padrão</div>
+							<div style="font-size: 0.8em; color: #666;">Lista simples com título e descrição curta.
+							</div>
+						</div>
+					</label>
+
+					<label
+						style="cursor: pointer; padding: 8px; border: 1px solid #eee; border-radius: 6px; display: flex; align-items: center; gap: 8px;">
+						<input type="radio" name="layout-type" value="project">
+						<div>
+							<div style="font-weight: 600; font-size: 0.95em;">Projetos</div>
+							<div style="font-size: 0.8em; color: #666;">Cartões mais largos, ideais para descrições mais
+								longas.</div>
+						</div>
+					</label>
+
+					<label
+						style="cursor: pointer; padding: 8px; border: 1px solid #eee; border-radius: 6px; display: flex; align-items: center; gap: 8px;">
+						<input type="radio" name="layout-type" value="person">
+						<div>
+							<div style="font-weight: 600; font-size: 0.95em;">Pessoas</div>
+							<div style="font-size: 0.8em; color: #666;">Cartões compactos, destaque no nome e cargo.
+							</div>
+						</div>
+					</label>
 				</div>
 			</div>
 

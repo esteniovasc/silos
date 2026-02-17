@@ -247,6 +247,7 @@ body {
 	flex-shrink: 0;
 	/* Impede achatamento */
 	background: white;
+	box-sizing: border-box;
 }
 
 .silo-ball:hover {
@@ -670,4 +671,67 @@ body {
 	background: #eef2f5;
 	border: 1px solid #ccc;
 	color: #666;
+}
+
+/* ÍCONES AVANÇADOS DOS SILOS */
+
+/* Tipo Imagem (Ícone solto no meio) */
+.silo-image-icon {
+	width: 50%;
+	height: 50%;
+	object-fit: contain;
+	margin-bottom: 5px;
+	pointer-events: none;
+	/* Não atrapalha clique */
+}
+
+/* Tipo Imagem (Capa Completa) */
+.silo-full-image {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 50%;
+	z-index: 0;
+	opacity: 1;
+	pointer-events: none;
+}
+
+/* Ajustes no Label para quando tiver imagem de capa */
+.silo-label {
+	z-index: 1;
+	/* Garante que texto fique sobre a imagem */
+	position: relative;
+	background: rgba(255, 255, 255, 0.7);
+	/* Fundo semi-transparente para leitura */
+	padding: 2px 8px;
+	border-radius: 10px;
+	margin-top: auto;
+	/* Empurra para baixo se flex column */
+	margin-bottom: 20px;
+	/* Ajuste fino */
+}
+
+/* Se não for full image, removemos o bg do label para ficar clean? 
+   O CSS acima aplica a todos. Vamos restringir ou deixar padrão?
+   Padrão: sem background. 
+   Vamos fazer um override específico no render JS ou CSS selector complexo.
+   Como o JS injeta HTML, podemos por classe no label.
+   Alternativa: O JS já põe style inline no label quando é full.
+   Vamos apenas definir os base styles aqui.
+*/
+.silo-label {
+	background: transparent;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+/* Revisitando .silo-ball para garantir posicionamento */
+.silo-ball {
+	overflow: hidden;
+	/* Garante que imagem full não vaze bordas */
+	position: relative;
+	/* Garante que filhos absolutos se posicionem aqui */
 }
