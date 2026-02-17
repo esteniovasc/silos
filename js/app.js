@@ -587,7 +587,11 @@ function openItemForm(siloId, itemIndex = null) {
 	const titleInput = document.getElementById('item-title-input');
 	const descInput = document.getElementById('item-desc-input');
 	const linkInput = document.getElementById('item-link-input');
-	const btnDelete = document.getElementById('btn-delete-item');
+	// const btnDelete = document.getElementById('btn-delete-item'); // REMOVIDO (Nova lógica)
+
+	// Resetar estado visual da exclusão (sem animação)
+	resetDeleteBtnState();
+	const btnDeleteInit = document.getElementById('btn-delete-init');
 
 	if (itemIndex !== null) {
 		// Editar
@@ -599,24 +603,116 @@ function openItemForm(siloId, itemIndex = null) {
 		descInput.value = item.desc;
 		linkInput.value = item.link || '';
 
-		btnDelete.style.display = 'block';
-		btnDelete.onclick = () => deleteItem(siloId, itemIndex);
+		// Mostrar botão de excluir (Estado Inicial)
+		// Pequeno delay para garantir que o reset termine e a gente possa dar override no display
+		setTimeout(() => {
+			btnDeleteInit.style.display = 'block';
+		}, 15);
+
+		// Vincular a ação real de exclusão ao botão "Sim"
+		document.getElementById('btn-confirm-yes').onclick = () => deleteItem(siloId, itemIndex);
+
 	} else {
 		// Novo
 		titleHeader.innerText = 'Novo Item';
 		titleInput.value = '';
 		descInput.value = '';
 		linkInput.value = '';
-		btnDelete.style.display = 'none';
-	}
 
+		// Esconder botão de excluir
+		// Garantido pelo resetDeleteBtnState que põe display: none por padrao
+		// Mas podemos reforçar
+		btnDeleteInit.style.display = 'none';
+	}
 	modal.style.display = 'flex';
 }
+
+// Variável global para controlar timeout de animação
+let deleteAnimationTimeout = null;
+
+function resetDeleteBtnState() {
+	if (deleteAnimationTimeout) clearTimeout(deleteAnimationTimeout);
+
+	const initBtn = document.getElementById('btn-delete-init');
+	const group = document.getElementById('delete-confirm-group');
+
+	// Reseta para o estado "Botão Excluir visível, Grupo oculto"
+	// A visibilidade final do initBtn (block/none) deve ser definida por quem chama, ou assumimos block aqui
+
+	group.style.transition = 'none'; // Desabilita transição para reset instantâneo
+	initBtn.style.transition = 'none';
+
+	group.style.width = '0';
+	group.style.opacity = '0';
+	group.style.transform = 'translateX(-150%)';
+	group.style.pointerEvents = 'none';
+
+	initBtn.style.transform = 'translateX(0)';
+	initBtn.style.opacity = '1';
+	initBtn.style.pointerEvents = 'auto';
+	initBtn.style.display = 'none'; // Default safe
+
+	// Força reflow para aplicar 'none'
+	void initBtn.offsetWidth;
+
+	// Reabilita transições
+	setTimeout(() => {
+		group.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease';
+		initBtn.style.transition = 'transform 0.3s ease';
+	}, 10);
+}
+
+// Lógica de Animação do Delete no Item
+window.showDeleteConfirmation = function () {
+	const initBtn = document.getElementById('btn-delete-init');
+	const group = document.getElementById('delete-confirm-group');
+
+	// Animação: Botão inicial some (ou move) e Grupo aparece
+	initBtn.style.transform = 'translateX(-100%)';
+	initBtn.style.opacity = '0';
+	initBtn.style.pointerEvents = 'none'; // Evita clique duplo acidental
+
+	if (deleteAnimationTimeout) clearTimeout(deleteAnimationTimeout);
+	// Pequeno delay para a troca
+	deleteAnimationTimeout = setTimeout(() => {
+		initBtn.style.display = 'none'; // Remove do fluxo para o grupo ocupar o espaço
+
+		group.style.width = 'auto';
+		group.style.opacity = '1';
+		group.style.pointerEvents = 'auto';
+		group.style.transform = 'translateX(0)';
+	}, 200);
+}
+
+window.hideDeleteConfirmation = function () {
+	const initBtn = document.getElementById('btn-delete-init');
+	const group = document.getElementById('delete-confirm-group');
+
+	// Animação inversa
+	group.style.transform = 'translateX(-150%)';
+	group.style.opacity = '0';
+	group.style.pointerEvents = 'none';
+
+	if (deleteAnimationTimeout) clearTimeout(deleteAnimationTimeout);
+	deleteAnimationTimeout = setTimeout(() => {
+		group.style.width = '0';
+
+		initBtn.style.display = 'block';
+		// Força reflow
+		void initBtn.offsetWidth;
+
+		initBtn.style.transform = 'translateX(0)';
+		initBtn.style.opacity = '1';
+		initBtn.style.pointerEvents = 'auto';
+	}, 200);
+}
+
 
 function closeItemForm() {
 	document.getElementById('item-form-modal').style.display = 'none';
 	currentItemSiloId = null;
 	currentItemIndex = null;
+	resetDeleteBtnState(); // Reseta estado visual instantaneamente
 }
 
 function saveItem() {
@@ -644,7 +740,7 @@ function saveItem() {
 }
 
 function deleteItem(siloId, index) {
-	if (!confirm('Excluir este item?')) return;
+	// if (!confirm('Excluir este item?')) return; // REMOVIDO: Confirmação agora é via UI
 
 	const silo = appData.find(s => s.id === siloId);
 	if (silo) {
