@@ -1307,7 +1307,7 @@ document.addEventListener('DOMContentLoaded', initTheme);
 
 // Preferências do Usuário (Default: true)
 let closeOnEsc = localStorage.getItem('silos-ux-esc') !== 'false';
-let closeOnOverlay = localStorage.getItem('silos-ux-overlay') !== 'false';
+let closeOnOverlay = localStorage.getItem('silos-ux-overlay') === 'true'; // Default: false
 
 // Checkboxes de Configuração
 const toggleEsc = document.getElementById('toggle-esc');
