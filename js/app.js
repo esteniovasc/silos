@@ -725,9 +725,27 @@ function closeSiloModal(force = false) {
 	// Verificar alterações (Dirty Check)
 	if (!force) {
 		const currentState = getSiloFormState();
-		if (JSON.stringify(initialSiloFormState) !== JSON.stringify(currentState)) {
-			showDiscardConfirmation(() => closeSiloModal(true));
-			return;
+
+		if (!currentEditingSiloId) {
+			// Lógica Relaxada para NOVO Silo:
+			// Só importa se o usuário preencheu nome ou mudou o ícone/imagem
+			// Mudanças de "Tipo de Layout" ou "Tipo de Ícone" (Radios) são ignoradas se não houver conteúdo
+
+			const hasName = currentState.name && currentState.name.trim() !== '';
+			const hasIconText = currentState.iconType === 'emoji' && currentState.iconText !== '📁';
+			// Para imagem, verifica se existe algo em tempImage (upload ou URL)
+			const hasImage = currentState.iconType !== 'emoji' && currentState.tempImage;
+
+			if (hasName || hasIconText || hasImage) {
+				showDiscardConfirmation(() => closeSiloModal(true));
+				return;
+			}
+		} else {
+			// Edição de Silo Existente: Check estrito (qualquer mudança conta)
+			if (JSON.stringify(initialSiloFormState) !== JSON.stringify(currentState)) {
+				showDiscardConfirmation(() => closeSiloModal(true));
+				return;
+			}
 		}
 	}
 
@@ -843,7 +861,7 @@ function saveSilo() {
 	saveData();
 	renderSilos();
 	renderLists();
-	closeSiloModal();
+	closeSiloModal(true);
 }
 
 // ================= DELETE SAFEGUARD =================
