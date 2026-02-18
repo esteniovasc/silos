@@ -373,6 +373,23 @@
 		</div>
 	</div>
 
+	<!-- Modal de Confirmação de Descarte -->
+	<div class="modal-overlay" id="discard-modal" style="z-index: 2000;">
+		<div class="modal" style="max-width: 400px; border-left: 5px solid #ffcc00;">
+			<h2 style="color: #d4a017; margin-top: 0;">⚠️ Descartar Alterações?</h2>
+			<p style="font-size: 1.1em; color: #333; margin-bottom: 20px;">
+				Você tem alterações não salvas. Deseja descartar as alterações e sair?
+			</p>
+			<div style="display: flex; justify-content: flex-end; gap: 10px;">
+				<button id="btn-discard-cancel" class="modal-btn cancel"
+					style="background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Cancelar</button>
+				<button id="btn-discard-confirm" class="modal-btn"
+					style="background: #ffcc00; color: #333; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Descartar
+					e Sair</button>
+			</div>
+		</div>
+	</div>
+
 	<!-- Container de Toasts (Notificações) -->
 	<div id="toast-container"></div>
 

@@ -6,6 +6,11 @@ let activeSilos = (savedUiState.activeSilos || []).filter(id => id !== null && i
 let modalReturnStack = [];
 let appData = [];
 
+// ================= ESTADO DE EDIÇÃO (DIRTY CHECK) =================
+let initialSiloFormState = null;
+let initialItemFormState = null;
+let discardCallback = null; // Função a ser executada se confirmar o descarte
+
 // Dados Padrão (Caso não tenha nada salvo)
 const defaultData = [
 	{
@@ -604,6 +609,24 @@ function updateSiloPreview(src) {
 	}
 }
 
+// Helper: Capturar estado do formulário de Silo
+function getSiloFormState() {
+	const layoutRadio = document.querySelector('input[name="layout-type"]:checked');
+	const iconRadio = document.querySelector('input[name="icon-type"]:checked');
+
+	return {
+		name: document.getElementById('silo-name')?.value || '',
+		layout: layoutRadio ? layoutRadio.value : 'default',
+		iconType: iconRadio ? iconRadio.value : 'emoji',
+		iconText: document.getElementById('silo-icon-text')?.value || '',
+		// Importante: comparar URL ou base64
+		// Se tempSiloIconBase64 for null, pode ser que não mudou, mas precisamos saber o estado visual
+		// No openSiloModal nós setamos tempSiloIconBase64 com o valor atual
+		// Então podemos usar tempSiloIconBase64 como referência de "estado atual da imagem"
+		tempImage: tempSiloIconBase64
+	};
+}
+
 // Abrir Modal (Criar ou Editar)
 function openSiloModal(siloId = null) {
 	currentEditingSiloId = siloId;
@@ -683,9 +706,20 @@ function openSiloModal(siloId = null) {
 	}
 
 	modal.style.display = 'flex';
+	// Captura estado "Limpo" inicial
+	initialSiloFormState = getSiloFormState();
 }
 
-function closeSiloModal() {
+function closeSiloModal(force = false) {
+	// Verificar alterações (Dirty Check)
+	if (!force) {
+		const currentState = getSiloFormState();
+		if (JSON.stringify(initialSiloFormState) !== JSON.stringify(currentState)) {
+			showDiscardConfirmation(() => closeSiloModal(true));
+			return;
+		}
+	}
+
 	closeModalAnimated('silo-modal', () => {
 		currentEditingSiloId = null;
 	});
@@ -852,10 +886,36 @@ function executeDelete(id) {
 	renderLists();
 
 	closeDeleteModal();
-	closeSiloModal(); // Garante que o de edição feche também
+	closeSiloModal(true); // Força fechamento pois já deletou
 }
 
 window.closeDeleteModal = closeDeleteModal;
+
+// ================= CONFIRMAÇÃO DE DESCARTE =================
+function showDiscardConfirmation(onConfirm) {
+	discardCallback = onConfirm;
+	document.getElementById('discard-modal').style.display = 'flex';
+}
+
+function closeDiscardModal() {
+	document.getElementById('discard-modal').style.display = 'none';
+	discardCallback = null;
+}
+
+document.getElementById('btn-discard-confirm').addEventListener('click', () => {
+	if (discardCallback) discardCallback();
+	closeDiscardModal();
+});
+
+document.getElementById('btn-discard-cancel').addEventListener('click', () => {
+	closeDiscardModal();
+});
+
+// Fechar com ESC (Opcional, mas consistente)
+// Já existe listener global no settings, que pode conflitar se não formos cuidadosos
+// Mas como é um modal por cima, ele deve ter prioridade.
+// Vamos deixar o listener global lidar? O listener global fecha "modais".
+// Precisamos garantir que ele feche o do topo.
 
 // ================= CRUD ITENS =================
 let currentItemSiloId = null;
@@ -915,6 +975,16 @@ function openItemForm(siloId, itemIndex = null) {
 		btnDeleteInit.style.display = 'none';
 	}
 	modal.style.display = 'flex';
+	// Captura estado inicial
+	initialItemFormState = getItemFormState();
+}
+
+function getItemFormState() {
+	return {
+		title: document.getElementById('item-title-input')?.value || '',
+		desc: document.getElementById('item-desc-input')?.value || '',
+		link: document.getElementById('item-link-input')?.value || ''
+	};
 }
 
 // Variável global para controlar timeout de animação
@@ -1073,7 +1143,15 @@ window.hideDeleteConfirmation = function () {
 }
 
 
-function closeItemForm() {
+function closeItemForm(force = false) {
+	if (!force) {
+		const currentState = getItemFormState();
+		if (JSON.stringify(initialItemFormState) !== JSON.stringify(currentState)) {
+			showDiscardConfirmation(() => closeItemForm(true));
+			return;
+		}
+	}
+
 	closeModalAnimated('item-form-modal', () => {
 		currentItemSiloId = null;
 		currentItemIndex = null;
@@ -1120,7 +1198,7 @@ function saveItem() {
 	const sId = currentItemSiloId;
 	const iIdx = currentItemIndex;
 
-	closeItemForm();
+	closeItemForm(true); // Força fechamento pois salvou
 
 	if (cameFromDetails) {
 		openModal(sId, iIdx); // Recarrega com dados novos
@@ -1143,7 +1221,7 @@ function deleteItem(siloId, index) {
 			modalReturnStack.pop();
 		}
 
-		closeItemForm();
+		closeItemForm(true); // Força fechamento pois deletou
 		closeModal();
 	}
 }
