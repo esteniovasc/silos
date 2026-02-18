@@ -871,35 +871,32 @@ function deleteSilo(id) {
 	const silo = appData.find(s => s.id === id);
 	if (!silo) return;
 
-	// Se estiver vazio, deleta direto (ou com confirm simples)
-	if (silo.items.length === 0) {
-		if (confirm(`Excluir o silo "${silo.label}"?`)) {
-			executeDelete(id);
-		}
-		return;
-	}
-
-	// Se tiver itens, abre modal de segurança
 	siloToDeleteId = id;
 	const modal = document.getElementById('delete-modal');
 	const msg = document.getElementById('delete-msg');
 	const preview = document.getElementById('delete-items-preview');
 
-	msg.innerHTML = `O silo <strong>"${silo.label}"</strong> possui <strong>${silo.items.length} itens</strong>:`;
-
-	// Lista os itens
-	preview.innerHTML = silo.items.map(item => `• ${item.title}`).join('<br>');
+	if (silo.items.length > 0) {
+		msg.innerHTML = `O silo <strong>"${silo.label}"</strong> possui <strong>${silo.items.length} itens</strong>:`;
+		preview.innerHTML = silo.items.map(item => `• ${item.title}`).join('<br>');
+		preview.style.display = 'block';
+		document.getElementById('btn-confirm-delete').innerText = "Sim, Excluir Tudo";
+	} else {
+		msg.innerHTML = `Tem certeza que deseja excluir o silo <strong>"${silo.label}"</strong>?`;
+		preview.innerHTML = '';
+		preview.style.display = 'none';
+		document.getElementById('btn-confirm-delete').innerText = "Sim, Excluir";
+	}
 
 	modal.style.display = 'flex';
-	// Fecha o modal de edição (que está por baixo)
-	document.getElementById('silo-modal').style.display = 'none';
+	// Mantém o modal de edição aberto por baixo
+	// document.getElementById('silo-modal').style.display = 'none';
 }
 
 function closeDeleteModal() {
-	document.getElementById('delete-modal').style.display = 'none';
-	siloToDeleteId = null;
-	// Reabre o modal de edição caso cancelou? Ou fecha tudo? 
-	// Melhor fechar tudo ou deixar o usuário decidir. Vamos deixar fechado.
+	closeModalAnimated('delete-modal', () => {
+		siloToDeleteId = null;
+	});
 }
 
 document.getElementById('btn-confirm-delete').onclick = () => {
