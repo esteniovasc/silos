@@ -1012,6 +1012,10 @@ function resetDeleteBtnState() {
 	initBtn.style.pointerEvents = 'auto';
 	initBtn.style.display = 'none'; // Default safe
 
+	// Remove classe ativa do modal
+	const modalElement = document.querySelector('#item-form-modal .modal');
+	if (modalElement) modalElement.classList.remove('delete-active');
+
 	// Força reflow para aplicar 'none'
 	void initBtn.offsetWidth;
 
@@ -1102,6 +1106,10 @@ window.showDeleteConfirmation = function () {
 	const initBtn = document.getElementById('btn-delete-init');
 	const group = document.getElementById('delete-confirm-group');
 
+	// Adiciona classe ao modal para controle via CSS (responsivo)
+	const modalElement = document.querySelector('#item-form-modal .modal');
+	if (modalElement) modalElement.classList.add('delete-active');
+
 	// Animação: Botão inicial some (ou move) e Grupo aparece
 	initBtn.style.transform = 'translateX(-100%)';
 	initBtn.style.opacity = '0';
@@ -1122,6 +1130,10 @@ window.showDeleteConfirmation = function () {
 window.hideDeleteConfirmation = function () {
 	const initBtn = document.getElementById('btn-delete-init');
 	const group = document.getElementById('delete-confirm-group');
+
+	// Remove classe
+	const modalElement = document.querySelector('#item-form-modal .modal');
+	if (modalElement) modalElement.classList.remove('delete-active');
 
 	// Animação inversa
 	group.style.transform = 'translateX(-150%)';

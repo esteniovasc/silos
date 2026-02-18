@@ -511,16 +511,26 @@ body {
 .modal {
 	background: white;
 	width: 90%;
-	max-width: 500px;
+	max-width: 600px;
+	/* Aumentado para Desktop */
 	padding: 25px;
 	border-radius: 15px;
 	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 	position: relative;
 	animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+	/* Transição suave de largura se redimensionar */
+	transition: max-width 0.3s ease;
 }
 
 .modal-overlay.closing .modal {
 	animation: scaleOut 0.2s ease forwards !important;
+}
+
+/* Regra Especial: Esconder ações APENAS em telas pequenas quando deletar */
+@media (max-width: 600px) {
+	.modal.delete-active #item-form-actions {
+		display: none !important;
+	}
 }
 
 
