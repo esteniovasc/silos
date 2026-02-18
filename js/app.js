@@ -644,7 +644,18 @@ function openSiloModal(siloId = null) {
 		siloIconPreview.style.display = 'none';
 	}
 	if (siloIconFile) siloIconFile.value = '';
+	// Resetar Inputs Visuais
+	if (siloIconPreview) {
+		siloIconPreview.src = '';
+		siloIconPreview.style.display = 'none';
+	}
+	if (siloIconFile) siloIconFile.value = '';
 	if (siloIconUrl) siloIconUrl.value = '';
+
+	// Limpar Erros de Validação Anteriores
+	clearInputError(nameInput);
+	if (siloIconUrl) clearInputError(siloIconUrl);
+	if (siloIconFile) clearInputError(siloIconFile);
 
 	if (siloId) {
 		// Modo Edição
@@ -938,6 +949,9 @@ function openItemForm(siloId, itemIndex = null) {
 	const descInput = document.getElementById('item-desc-input');
 	const linkInput = document.getElementById('item-link-input');
 	// const btnDelete = document.getElementById('btn-delete-item'); // REMOVIDO (Nova lógica)
+
+	// Limpar Erros de Validação Anteriores
+	clearInputError(titleInput);
 
 	// Resetar estado visual da exclusão (sem animação)
 	resetDeleteBtnState();
