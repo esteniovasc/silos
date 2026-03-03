@@ -184,6 +184,15 @@ function animateLines() {
 	animationFrameId = requestAnimationFrame(loop);
 }
 
+// ================= PARSER DE TEXTO RICO (MARKDOWN SIMPLES) =================
+function formatDescription(desc) {
+	if (!desc) return '';
+	// Substitui **texto** por <b>texto</b> e quebras de linha por <br>
+	return desc
+		.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+		.replace(/\n/g, '<br>');
+}
+
 function renderLists() {
 	listsContainer.innerHTML = '';
 
@@ -195,10 +204,11 @@ function renderLists() {
 
 			let cardsHtml = '';
 			siloData.items.forEach((item, index) => {
+				const formattedDesc = formatDescription(item.desc);
 				cardsHtml += `
                 <div class="item-card" data-silo-id="${siloData.id}" data-item-index="${index}">
                     <div class="item-title">${item.title}</div>
-                    <div class="item-desc">${item.desc}</div>
+                    <div class="item-desc">${formattedDesc}</div>
                 </div>
             `;
 			});
@@ -970,6 +980,30 @@ function openItemForm(siloId, itemIndex = null) {
 	// Limpar Erros de Validação Anteriores
 	clearInputError(titleInput);
 
+	// Event Listener para Ctrl+B (Negrito)
+	descInput.onkeydown = function (e) {
+		if (e.ctrlKey && e.key === 'b') {
+			e.preventDefault(); // Evita o comportamento padrão do navegador
+
+			const startPos = this.selectionStart;
+			const endPos = this.selectionEnd;
+			const selectedText = this.value.substring(startPos, endPos);
+
+			// Só aplica se houver texto selecionado
+			if (selectedText.length > 0) {
+				const beforeText = this.value.substring(0, startPos);
+				const afterText = this.value.substring(endPos, this.value.length);
+
+				// Envolve texto com **
+				this.value = beforeText + '**' + selectedText + '**' + afterText;
+
+				// Reposiciona o cursor e a seleção
+				this.selectionStart = startPos;
+				this.selectionEnd = endPos + 4; // +4 por causa dos ****
+			}
+		}
+	};
+
 	// Resetar estado visual da exclusão (sem animação)
 	resetDeleteBtnState();
 	const btnDeleteInit = document.getElementById('btn-delete-init');
@@ -1283,7 +1317,9 @@ function openModal(siloId, itemIndex) {
 	const item = silo.items[itemIndex];
 
 	document.getElementById('modal-title').innerText = item.title;
-	document.getElementById('modal-desc').innerText = item.desc;
+
+	// Usa innerHTML com o formatador para aplicar o negrito (<b>) e preserva as quebras (CSS handles white-space)
+	document.getElementById('modal-desc').innerHTML = formatDescription(item.desc);
 
 	const linkBtn = document.getElementById('modal-link');
 	if (item.link && item.link.trim() !== '') {
