@@ -194,7 +194,7 @@ body {
 	margin: 0 auto -30px auto;
 	/* Compensa o padding extra */
 	/* Centraliza se menor que a tela */
-	padding: 40px 40px 40px 40px;
+	padding: 40px 0px 40px 0px;
 	/* Espaço extra para sombra não cortar */
 	justify-content: flex-start;
 	/* Alinha itens ao início DESTE container */
@@ -237,8 +237,8 @@ body {
 /* ESTILOS DOS COMPONENTES */
 
 .silo-ball {
-	width: 100px;
-	height: 100px;
+	width: 12vh;
+	height: 12vh;
 	background: white;
 	border-radius: 50%;
 	display: flex;
@@ -270,7 +270,7 @@ body {
 .silo-ball.active {
 	border-color: var(--accent);
 	background: #fff8e1;
-	transform: scale(1.1);
+	transform: scale(1.05);
 	box-shadow: 0 8px 15px rgba(255, 111, 0, 0.2);
 }
 
