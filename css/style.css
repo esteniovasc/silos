@@ -442,6 +442,10 @@ body {
 	font-size: 1rem;
 	padding: 10px !important;
 	line-height: 1.4;
+	box-sizing: border-box;
+	max-width: 100%;
+	min-width: 100%;
+	resize: vertical;
 }
 
 /* VARIANTES DE LAYOUT DE LISTA */
