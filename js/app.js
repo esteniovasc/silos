@@ -1282,7 +1282,15 @@ function openModal(siloId, itemIndex) {
 
 	document.getElementById('modal-title').innerText = item.title;
 	document.getElementById('modal-desc').innerText = item.desc;
-	document.getElementById('modal-link').href = item.link || '#';
+	
+	const linkBtn = document.getElementById('modal-link');
+	if (item.link && item.link.trim() !== '') {
+		linkBtn.href = item.link;
+		linkBtn.style.display = 'flex';
+	} else {
+		linkBtn.href = '#';
+		linkBtn.style.display = 'none';
+	}
 
 	// Botão Editar no Modal de Detalhes
 	const btnEdit = document.getElementById('btn-edit-item-details');
