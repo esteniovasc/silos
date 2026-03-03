@@ -208,7 +208,9 @@ function renderLists() {
                 <span>${siloData.label}</span>
                 <span class="edit-silo-btn" data-id="${siloData.id}" title="Editar Silo">✏️</span>
             </div>
-            ${cardsHtml}
+            <div class="items-list">
+                ${cardsHtml}
+            </div>
             <button class="btn-add-item" onclick="openItemForm('${siloData.id}')">+ Novo Item</button>
         `;
 			listsContainer.appendChild(col);
@@ -1282,7 +1284,7 @@ function openModal(siloId, itemIndex) {
 
 	document.getElementById('modal-title').innerText = item.title;
 	document.getElementById('modal-desc').innerText = item.desc;
-	
+
 	const linkBtn = document.getElementById('modal-link');
 	if (item.link && item.link.trim() !== '') {
 		linkBtn.href = item.link;

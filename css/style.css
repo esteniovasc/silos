@@ -229,6 +229,8 @@ body {
 	/* Garante scroll correto sem cortes */
 	margin: 0 auto;
 	/* Centraliza se couber */
+	height: 100%;
+	box-sizing: border-box;
 }
 
 
@@ -350,6 +352,36 @@ body {
 	border-top: 5px solid var(--primary);
 	animation: slideDown 0.3s ease;
 	flex-shrink: 0;
+	max-height: 100%;
+}
+
+/* SCROLL INTERNO DOS ITENS (Estilo Kanban) */
+.items-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	flex-grow: 1;
+	overflow-y: auto;
+	padding-right: 5px;
+	/* Compensa scrollbar */
+}
+
+/* Customização Scrollbar items-list */
+.items-list::-webkit-scrollbar {
+	width: 4px;
+}
+
+.items-list::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.items-list::-webkit-scrollbar-thumb {
+	background: #ccc;
+	border-radius: 4px;
+}
+
+.items-list::-webkit-scrollbar-thumb:hover {
+	background: #aaa;
 }
 
 @keyframes slideDown {
