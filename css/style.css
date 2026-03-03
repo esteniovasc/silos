@@ -158,7 +158,7 @@ body {
 
 #btn-toggle-all {
 	position: absolute;
-	left: calc(50% - 100px);
+	left: calc(50% - 120px);
 	transform: translateX(-50%);
 	background: white;
 	border: 1px solid var(--primary);
@@ -419,6 +419,24 @@ body {
 	border-left-color: var(--accent);
 }
 
+/* Imagens do Item (Capa) */
+.item-cover {
+	width: calc(100% + 24px);
+	/* Compensa o padding de 12px do card pai */
+	margin: -12px -12px 10px -12px;
+	height: 120px;
+	/* Altura fixa para a capa do cartão */
+	object-fit: cover;
+	border-radius: 8px 8px 0 0;
+	display: block;
+	background: #eee;
+}
+
+/* Ocultar capas globalmente */
+body.hide-covers .item-cover {
+	display: none !important;
+}
+
 .item-title {
 	font-weight: 600;
 	font-size: 0.95rem;
@@ -462,9 +480,29 @@ body {
 	/* Destaque na borda */
 }
 
+/* Imagens do Item (Avatar) na Lista tipo Pessoa */
+.item-avatar {
+	width: 45px;
+	height: 45px;
+	border-radius: 50%;
+	object-fit: cover;
+	float: left;
+	margin-right: 12px;
+	margin-bottom: 5px;
+	border: 2px solid #e0e0e0;
+}
+
+/* Clearfix para cards com avatar (se texto for menor que a imagem) */
+.list-type-person .item-card::after {
+	content: "";
+	display: table;
+	clear: both;
+}
+
 .list-type-person .item-title {
 	font-size: 1rem;
 	color: var(--primary);
+	padding-top: 2px;
 }
 
 .list-type-person .item-desc {

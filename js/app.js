@@ -205,8 +205,18 @@ function renderLists() {
 			let cardsHtml = '';
 			siloData.items.forEach((item, index) => {
 				const formattedDesc = formatDescription(item.desc);
+
+				// Tratar a Imagem do Item
+				let imageHtml = '';
+				if (item.image) {
+					// Se for classe "person", usa avatar. Senão, usa cover.
+					const imgClass = (siloData.type === 'person') ? 'item-avatar' : 'item-cover';
+					imageHtml = `<img src="${item.image}" class="${imgClass}" alt="Imagem do item">`;
+				}
+
 				cardsHtml += `
                 <div class="item-card" data-silo-id="${siloData.id}" data-item-index="${index}">
+                	${imageHtml}
                     <div class="item-title">${item.title}</div>
                     <div class="item-desc">${formattedDesc}</div>
                 </div>
@@ -958,6 +968,62 @@ document.getElementById('btn-discard-cancel').addEventListener('click', () => {
 // ================= CRUD ITENS =================
 let currentItemSiloId = null;
 let currentItemIndex = null;
+let tempItemImageBase64 = null; // Imagem temporária do formulário de item
+
+const itemIconUrlElement = document.getElementById('item-image-url');
+const itemIconFileElement = document.getElementById('item-image-file');
+
+// Lidere de input de Imagem de Item
+if (itemIconUrlElement) {
+	itemIconUrlElement.addEventListener('input', (e) => {
+		const url = e.target.value.trim();
+		if (itemIconFileElement) itemIconFileElement.value = ''; // Limpa arquivo
+		if (url) {
+			tempItemImageBase64 = url;
+			updateItemPreview(url);
+		} else {
+			tempItemImageBase64 = null;
+			updateItemPreview('');
+		}
+	});
+}
+
+if (itemIconFileElement) {
+	itemIconFileElement.addEventListener('change', (e) => {
+		const file = e.target.files[0];
+		if (file) {
+			if (itemIconUrlElement) itemIconUrlElement.value = ''; // Limpa URL
+			const reader = new FileReader();
+			reader.onload = (event) => {
+				tempItemImageBase64 = event.target.result;
+				updateItemPreview(tempItemImageBase64);
+			};
+			reader.readAsDataURL(file);
+		} else {
+			// Não apagamos se cancelou, a menos que zere tudo
+			if (!tempItemImageBase64 || tempItemImageBase64.startsWith('http')) return;
+			tempItemImageBase64 = null;
+			updateItemPreview('');
+		}
+	});
+}
+
+function updateItemPreview(src) {
+	const previewImg = document.getElementById('item-image-preview');
+	const previewLbl = document.getElementById('item-preview-label');
+
+	if (previewImg) {
+		if (src) {
+			previewImg.src = src;
+			previewImg.style.display = 'block';
+			if (previewLbl) previewLbl.style.display = 'block';
+		} else {
+			previewImg.src = '';
+			previewImg.style.display = 'none';
+			if (previewLbl) previewLbl.style.display = 'none';
+		}
+	}
+}
 
 function openItemForm(siloId, itemIndex = null) {
 	// Verificar se o modal de detalhes está aberto e empilhar
@@ -975,7 +1041,13 @@ function openItemForm(siloId, itemIndex = null) {
 	const titleInput = document.getElementById('item-title-input');
 	const descInput = document.getElementById('item-desc-input');
 	const linkInput = document.getElementById('item-link-input');
-	// const btnDelete = document.getElementById('btn-delete-item'); // REMOVIDO (Nova lógica)
+	const imageInputUrl = document.getElementById('item-image-url');
+	const imageInputFile = document.getElementById('item-image-file');
+
+	tempItemImageBase64 = null;
+	updateItemPreview('');
+	imageInputUrl.value = '';
+	imageInputFile.value = '';
 
 	// Limpar Erros de Validação Anteriores
 	clearInputError(titleInput);
@@ -1018,6 +1090,14 @@ function openItemForm(siloId, itemIndex = null) {
 		descInput.value = item.desc;
 		linkInput.value = item.link || '';
 
+		if (item.image) {
+			tempItemImageBase64 = item.image;
+			updateItemPreview(tempItemImageBase64);
+			if (tempItemImageBase64.startsWith('http')) {
+				imageInputUrl.value = tempItemImageBase64;
+			}
+		}
+
 		// Mostrar botão de excluir (Estado Inicial)
 		// Pequeno delay para garantir que o reset termine e a gente possa dar override no display
 		setTimeout(() => {
@@ -1048,7 +1128,8 @@ function getItemFormState() {
 	return {
 		title: document.getElementById('item-title-input')?.value || '',
 		desc: document.getElementById('item-desc-input')?.value || '',
-		link: document.getElementById('item-link-input')?.value || ''
+		link: document.getElementById('item-link-input')?.value || '',
+		tempImage: tempItemImageBase64
 	};
 }
 
@@ -1250,6 +1331,7 @@ function saveItem() {
 	const title = document.getElementById('item-title-input').value;
 	const desc = document.getElementById('item-desc-input').value;
 	const link = document.getElementById('item-link-input').value;
+	const image = tempItemImageBase64;
 
 	if (!title) {
 		showInputError(document.getElementById('item-title-input'), 'Título é obrigatório');
@@ -1261,10 +1343,10 @@ function saveItem() {
 
 	if (currentItemIndex !== null) {
 		// Atualizar
-		silo.items[currentItemIndex] = { title, desc, link };
+		silo.items[currentItemIndex] = { title, desc, link, image };
 	} else {
 		// Criar
-		silo.items.push({ title, desc, link });
+		silo.items.push({ title, desc, link, image });
 	}
 
 	saveData();
@@ -1330,6 +1412,16 @@ function openModal(siloId, itemIndex) {
 		linkBtn.style.display = 'none';
 	}
 
+	// Banner de Imagem (Hero) - Interativo para Popup
+	const banner = document.getElementById('modal-image-banner');
+	if (item.image) {
+		banner.src = item.image;
+		banner.style.display = 'block';
+	} else {
+		banner.src = '';
+		banner.style.display = 'none';
+	}
+
 	// Botão Editar no Modal de Detalhes
 	const btnEdit = document.getElementById('btn-edit-item-details');
 	btnEdit.onclick = () => {
@@ -1341,6 +1433,20 @@ function openModal(siloId, itemIndex) {
 
 function closeModal() {
 	closeModalAnimated('modal');
+}
+
+// Lógica do Popup de Imagem
+window.openImagePopup = function (src) {
+	const popup = document.getElementById('image-popup');
+	const popupImg = document.getElementById('image-popup-content');
+	if (popup && popupImg) {
+		popupImg.src = src;
+		popup.style.display = 'flex';
+	}
+}
+
+window.closeImagePopup = function () {
+	closeModalAnimated('image-popup');
 }
 
 window.closeModal = closeModal;
@@ -1773,6 +1879,35 @@ if (btnResetTheme) {
 // Iniciar Tema ao Carregar
 document.addEventListener('DOMContentLoaded', initTheme);
 
+// ================= TOGGLE CAPAS GLOBAIS (VIA CONFIGURAÇÕES) =================
+// Por padrão as capas começam desativadas (false) se não houver preferência salva
+let coversVisible = localStorage.getItem('silos-ux-covers') === 'true';
+
+// Aplica o estado inicial no body
+if (!coversVisible) {
+	document.body.classList.add('hide-covers');
+} else {
+	document.body.classList.remove('hide-covers');
+}
+
+const toggleCoversCheckbox = document.getElementById('toggle-covers');
+if (toggleCoversCheckbox) {
+	// Seta o estado do checkbox
+	toggleCoversCheckbox.checked = coversVisible;
+
+	// Escuta mudanças
+	toggleCoversCheckbox.addEventListener('change', (e) => {
+		coversVisible = e.target.checked;
+		localStorage.setItem('silos-ux-covers', coversVisible);
+
+		if (coversVisible) {
+			document.body.classList.remove('hide-covers');
+		} else {
+			document.body.classList.add('hide-covers');
+		}
+	});
+}
+
 // ================= FECHAR MODAIS (UX) =================
 
 // Preferências do Usuário (Default: true)
@@ -1819,6 +1954,12 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 function closeAnyOpenModal() {
 	// Verifica qual está visível e chama a função específica para garantir limpeza de estado
 	// Ordem importa: Modais "por cima" de outros devem fechar primeiro (ex: Confirm Delete sobre Edit Silo)
+
+	const imagePopup = document.getElementById('image-popup');
+	if (imagePopup && imagePopup.style.display === 'flex') {
+		closeImagePopup();
+		return;
+	}
 
 	const deleteModal = document.getElementById('delete-modal');
 	if (deleteModal && deleteModal.style.display === 'flex') {
