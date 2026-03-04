@@ -14,32 +14,31 @@ let discardCallback = null; // Função a ser executada se confirmar o descarte
 // Dados Padrão (Caso não tenha nada salvo)
 const defaultData = [
 	{
-		id: 'projetos', label: 'Projetos', icon: '🎭', type: 'project',
+		id: 'projetos', label: 'Projetos', icon: '🚀', type: 'project',
 		items: [
-			{ title: "Dramas de Caridade", desc: "Resgate histórico e vídeos.", link: "#" },
-			{ title: "Museu Vivo", desc: "Rodas de conversa mensais.", link: "#" },
-			{ title: "Revista 150 Anos", desc: "Diagramação finalizada.", link: "#" }
+			{ title: "Silos App", desc: "Gerenciador visual e minimalista de informações.", link: "https://github.com/esteniovasc/silos", image: "" },
+			{ title: "Bem-vindo!", desc: "Experimente criar **itens**, adicionar links caprichados e arrastar os silos acima para reordenar.", link: "#", image: "" }
 		]
 	},
 	{
-		id: 'ativos', label: 'Ativos', icon: '📂', type: 'default',
+		id: 'recursos', label: 'Recursos', icon: '📂', type: 'default',
 		items: [
-			{ title: "Logo & Identidade", desc: "Vetores e Manual de Marca.", link: "#" },
-			{ title: "Fotos Eventos 2025", desc: "Pasta Drive organizada.", link: "#" }
+			{ title: "Dicas Rápidas", desc: "Use **Ctrl+B** na descrição para destacar textos.", link: "#", image: "" },
+			{ title: "Tema Dinâmico", desc: "O botão de engrenagem ⚙️ esconde opções visuais incríveis.", link: "#", image: "" }
 		]
 	},
 	{
 		id: 'pessoas', label: 'Pessoas', icon: '👥', type: 'person',
 		items: [
-			{ title: "Nágela Lopes", desc: "Currículo e Docs Pessoais.", link: "#" },
-			{ title: "Voluntários", desc: "Escala e Onboarding.", link: "#" }
+			{ title: "Estênio Vasconcelos", desc: "Desenvolvedor / Ideador principal da aplicação", link: "https://github.com/esteniovasc", image: "assets/avatar_estenio.png" },
+			{ title: "Você", desc: "Para aparecer aqui, faça uma contribuição no repositório GitHub!", link: "https://github.com/esteniovasc/silos", image: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" }
 		]
 	},
 	{
 		id: 'admin', label: 'Admin', icon: '🔐', type: 'default',
 		items: [
-			{ title: "Senhas Mestre", desc: "Acesso restrito.", link: "#" },
-			{ title: "Financeiro", desc: "Planilhas de custos.", link: "#" }
+			{ title: "Exportar JSON", desc: "Tudo roda no seu navegador. Salve o arquivo para fazer backup.", link: "#", image: "" },
+			{ title: "Total Privacidade", desc: "Nenhum dado é mandado para a nuvem. Totalmente offline e seguro.", link: "#", image: "" }
 		]
 	}
 ];
