@@ -1687,7 +1687,8 @@ function importProject(event) {
 
 			if (json.data.customLogo) {
 				localStorage.setItem('silos-custom-logo', json.data.customLogo);
-				document.getElementById('logo-img').src = json.data.customLogo;
+				const logoImg = document.getElementById('logo-img');
+				if (logoImg) logoImg.src = json.data.customLogo;
 			}
 
 			if (json.data.silos) {
