@@ -1645,7 +1645,8 @@ function exportProject() {
 		data: {
 			projectName: localStorage.getItem('silos-project-name') || "Meu Projeto Silos",
 			silos: appData,
-			customLogo: localStorage.getItem('silos-custom-logo')
+			customLogo: localStorage.getItem('silos-custom-logo'),
+			activeSilos: activeSilos
 		}
 	};
 
@@ -1685,15 +1686,43 @@ function importProject(event) {
 				document.title = `${json.data.projectName} | SilosApp`;
 			}
 
+			const currentSvg = document.getElementById('logo-svg');
+			const currentImg = document.getElementById('logo-img');
+			const newLogoSrc = json.data.customLogo ? json.data.customLogo : 'assets/logo.svg';
+
 			if (json.data.customLogo) {
 				localStorage.setItem('silos-custom-logo', json.data.customLogo);
-				const logoImg = document.getElementById('logo-img');
-				if (logoImg) logoImg.src = json.data.customLogo;
+			} else {
+				localStorage.removeItem('silos-custom-logo');
+			}
+
+			if (currentSvg) {
+				const newImg = document.createElement('img');
+				newImg.id = 'logo-img';
+				newImg.src = newLogoSrc;
+				newImg.alt = "Logo Silos";
+				newImg.style.borderRadius = "50%";
+				newImg.style.display = "block";
+				newImg.style.width = "100%";
+				newImg.style.height = "100%";
+				newImg.style.objectFit = "cover";
+				currentSvg.replaceWith(newImg);
+				setTimeout(convertLogoToSvg, 100);
+			} else if (currentImg) {
+				currentImg.src = newLogoSrc;
+				setTimeout(convertLogoToSvg, 100);
 			}
 
 			if (json.data.silos) {
 				appData = json.data.silos;
 				saveData(); // Salva silos no LocalStorage
+
+				if (json.data.activeSilos) {
+					activeSilos = json.data.activeSilos;
+				} else {
+					activeSilos = appData.map(s => s.id);
+				}
+				localStorage.setItem('silos-ui-state', JSON.stringify({ activeSilos }));
 			}
 
 			renderSilos();
