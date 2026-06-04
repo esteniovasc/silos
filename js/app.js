@@ -240,6 +240,22 @@ function renderLists() {
             <button class="btn-add-item" onclick="openItemForm('${siloData.id}')">+ Novo Item</button>
         `;
 			listsContainer.appendChild(col);
+
+			// Attach Drag & Drop Item Listeners
+			col.querySelectorAll('.item-card').forEach(card => {
+				card.draggable = true;
+				card.addEventListener('dragstart', handleItemDragStart);
+				card.addEventListener('dragend', handleItemDragEnd);
+				card.addEventListener('dragover', handleItemDragOver);
+				card.addEventListener('dragenter', (e) => e.preventDefault());
+				card.addEventListener('dragleave', handleItemDragLeave);
+				card.addEventListener('drop', handleItemDrop);
+			});
+			
+			const itemsList = col.querySelector('.items-list');
+			itemsList.addEventListener('dragover', handleListDragOver);
+			itemsList.addEventListener('dragleave', handleListDragLeave);
+			itemsList.addEventListener('drop', handleListDrop);
 		}
 	});
 
@@ -390,6 +406,7 @@ function handleDragEnd(e) {
 
 // Handler Drop Silo -> Silo (SWAP)
 function handleDragOver(e) {
+	if (!draggedSiloId) return false;
 	if (e.preventDefault) {
 		e.preventDefault();
 	}
@@ -401,6 +418,7 @@ function handleDragOver(e) {
 }
 
 function handleDragEnter(e) {
+	if (!draggedSiloId) return;
 	const targetId = this.id.replace('silo-', '');
 	if (targetId === draggedSiloId) return; // Ignora a própria bola
 
@@ -408,12 +426,14 @@ function handleDragEnter(e) {
 }
 
 function handleDragLeave(e) {
+	if (!draggedSiloId) return;
 	this.classList.remove('drag-over');
 }
 
 // Handler Drop Silo -> Silo (SWAP)
 function handleDrop(e) {
 	e.stopPropagation();
+	if (!draggedSiloId) return false;
 	const targetId = this.id.replace('silo-', '');
 
 	if (draggedSiloId !== targetId) {
@@ -426,17 +446,21 @@ function handleDrop(e) {
 
 // Handler Drop Zone -> Zone (INSERT)
 function handleZoneDragOver(e) {
+	if (!draggedSiloId) return false;
 	e.preventDefault();
 	e.dataTransfer.dropEffect = 'move';
 	this.classList.add('drag-over-zone');
+	return false;
 }
 
 function handleZoneDragLeave(e) {
+	if (!draggedSiloId) return;
 	this.classList.remove('drag-over-zone');
 }
 
 function handleZoneDrop(e) {
 	e.stopPropagation();
+	if (!draggedSiloId) return false;
 	this.classList.remove('drag-over-zone');
 
 	const targetIndex = parseInt(this.dataset.index);
@@ -493,6 +517,215 @@ function moveSilo(siloId, targetIndex) {
 	});
 }
 
+// ================= DRAG & DROP ITENS =================
+let draggedItemData = null; // { siloId, itemIndex }
+let crossSiloAttempt = false;
+
+function handleItemDragStart(e) {
+	e.stopPropagation(); // Avoid triggering silo drag if they were nested
+	const { siloId, itemIndex } = this.dataset;
+	draggedItemData = { siloId, itemIndex: parseInt(itemIndex) };
+	crossSiloAttempt = false;
+	
+	this.classList.add('dragging');
+	e.dataTransfer.effectAllowed = 'move';
+	e.dataTransfer.setData('text/plain', JSON.stringify(draggedItemData));
+}
+
+function handleItemDragEnd(e) {
+	e.stopPropagation();
+	this.classList.remove('dragging');
+	
+	if (crossSiloAttempt && !allowCrossSilo) {
+		const lastShown = parseInt(localStorage.getItem('silos-cross-silo-tooltip-time') || '0');
+		const now = Date.now();
+		const cooldown = 12 * 60 * 60 * 1000; // 12 horas em milissegundos
+		
+		if (now - lastShown > cooldown) {
+			showToast("💡 Dica: Para mover itens entre silos diferentes, ative a opção nas Configurações.", "info", 6000);
+			localStorage.setItem('silos-cross-silo-tooltip-time', now);
+		}
+	}
+	
+	draggedItemData = null;
+	crossSiloAttempt = false;
+	
+	// Limpar estilos visuais
+	document.querySelectorAll('.item-card').forEach(el => {
+		el.classList.remove('drop-target-top');
+		el.classList.remove('drop-target-bottom');
+	});
+	document.querySelectorAll('.items-list').forEach(el => {
+		el.classList.remove('drag-over');
+	});
+}
+
+function handleItemDragOver(e) {
+	if (!draggedItemData) return false;
+	
+	const targetSiloId = this.dataset.siloId;
+	if (!allowCrossSilo && draggedItemData.siloId !== targetSiloId) {
+		crossSiloAttempt = true;
+		return false;
+	}
+
+	e.preventDefault();
+	e.stopPropagation();
+	e.dataTransfer.dropEffect = 'move';
+	
+	// Feedback visual na metade superior ou inferior
+	const rect = this.getBoundingClientRect();
+	const midY = rect.top + rect.height / 2;
+	
+	if (e.clientY < midY) {
+		this.classList.add('drop-target-top');
+		this.classList.remove('drop-target-bottom');
+	} else {
+		this.classList.remove('drop-target-top');
+		this.classList.add('drop-target-bottom');
+	}
+	
+	return false;
+}
+
+function handleItemDragLeave(e) {
+	e.stopPropagation();
+	this.classList.remove('drop-target-top');
+	this.classList.remove('drop-target-bottom');
+}
+
+function handleItemDrop(e) {
+	e.stopPropagation();
+	e.preventDefault();
+	
+	this.classList.remove('drop-target-top');
+	this.classList.remove('drop-target-bottom');
+	
+	if (!draggedItemData) return false;
+	
+	const targetSiloId = this.dataset.siloId;
+	if (!allowCrossSilo && draggedItemData.siloId !== targetSiloId) return false;
+
+	const targetItemIndex = parseInt(this.dataset.itemIndex);
+	
+	const rect = this.getBoundingClientRect();
+	const midY = rect.top + rect.height / 2;
+	const insertAfter = e.clientY >= midY;
+	
+	let finalIndex = insertAfter ? targetItemIndex + 1 : targetItemIndex;
+	
+	moveItem(draggedItemData.siloId, draggedItemData.itemIndex, targetSiloId, finalIndex);
+	return false;
+}
+
+// Handlers for empty lists or dropping at the very end
+function handleListDragOver(e) {
+	if (!draggedItemData) return false;
+	
+	const column = this.closest('.list-column');
+	if (column) {
+		const targetSiloId = column.id.replace('list-', '');
+		if (!allowCrossSilo && draggedItemData.siloId !== targetSiloId) {
+			crossSiloAttempt = true;
+			return false;
+		}
+	}
+
+	e.preventDefault();
+	e.dataTransfer.dropEffect = 'move';
+	this.classList.add('drag-over');
+	return false;
+}
+
+function handleListDragLeave(e) {
+	if (!this.contains(e.relatedTarget)) {
+		this.classList.remove('drag-over');
+	}
+}
+
+function handleListDrop(e) {
+	e.preventDefault();
+	this.classList.remove('drag-over');
+	
+	if (!draggedItemData) return false;
+	
+	const column = this.closest('.list-column');
+	if (column) {
+		const targetSiloId = column.id.replace('list-', '');
+		if (!allowCrossSilo && draggedItemData.siloId !== targetSiloId) return false;
+
+		const targetSilo = appData.find(s => String(s.id) === String(targetSiloId));
+		if (targetSilo) {
+			const finalIndex = targetSilo.items.length;
+			moveItem(draggedItemData.siloId, draggedItemData.itemIndex, targetSiloId, finalIndex);
+		}
+	}
+	return false;
+}
+
+function moveItem(sourceSiloId, sourceIndex, targetSiloId, targetIndex) {
+	const sourceSilo = appData.find(s => String(s.id) === String(sourceSiloId));
+	const targetSilo = appData.find(s => String(s.id) === String(targetSiloId));
+	
+	if (!sourceSilo || !targetSilo) return;
+	
+	let finalTargetIndex = targetIndex;
+	// Adjust index if in same silo and dropping after the source index
+	if (sourceSiloId === targetSiloId && targetIndex > sourceIndex) {
+		finalTargetIndex--;
+	}
+	
+	// Se o destino for o mesmo que a origem, não faz nada
+	if (sourceSiloId === targetSiloId && sourceIndex === finalTargetIndex) {
+		return;
+	}
+	
+	// Atualiza appData
+	const [movedItem] = sourceSilo.items.splice(sourceIndex, 1);
+	targetSilo.items.splice(finalTargetIndex, 0, movedItem);
+	saveData();
+	
+	// Atualiza o DOM (Otimizado para não piscar a lista com renderLists)
+	const sourceList = document.querySelector(`#list-${sourceSiloId} .items-list`);
+	const targetList = document.querySelector(`#list-${targetSiloId} .items-list`);
+	
+	if (sourceList && targetList) {
+		const draggedCard = sourceList.querySelector(`.item-card[data-item-index="${sourceIndex}"]`);
+		if (draggedCard) {
+			// Remove do DOM atual
+			draggedCard.remove();
+			
+			// Procura onde inserir no destino
+			const remainingCards = targetList.querySelectorAll('.item-card');
+			if (finalTargetIndex < remainingCards.length) {
+				targetList.insertBefore(draggedCard, remainingCards[finalTargetIndex]);
+			} else {
+				targetList.appendChild(draggedCard);
+			}
+			
+			// Re-indexar a origem
+			document.querySelectorAll(`#list-${sourceSiloId} .item-card`).forEach((card, idx) => {
+				card.dataset.siloId = sourceSiloId;
+				card.dataset.itemIndex = idx;
+			});
+			
+			// Se o destino for diferente, re-indexa ele também
+			if (sourceSiloId !== targetSiloId) {
+				document.querySelectorAll(`#list-${targetSiloId} .item-card`).forEach((card, idx) => {
+					card.dataset.siloId = targetSiloId;
+					card.dataset.itemIndex = idx;
+				});
+			}
+			
+			// Atualizar as linhas SVG porque os tamanhos das listas podem ter mudado
+			requestAnimationFrame(drawLines);
+		} else {
+			renderLists();
+		}
+	} else {
+		renderLists();
+	}
+}
 // Helper: FLIP Animation (First, Last, Invert, Play)
 function animateReorder(updateStateFn) {
 	// 1. FIRST: Capturar posições atuais
@@ -1981,6 +2214,18 @@ if (toggleOverlay) {
 	toggleOverlay.addEventListener('change', (e) => {
 		closeOnOverlay = e.target.checked;
 		localStorage.setItem('silos-ux-overlay', closeOnOverlay);
+	});
+}
+
+// Configuração: Permitir Transferência Kanban
+let allowCrossSilo = localStorage.getItem('silos-ux-cross-silo') === 'true'; // Default: false
+
+const toggleCrossSilo = document.getElementById('toggle-cross-silo');
+if (toggleCrossSilo) {
+	toggleCrossSilo.checked = allowCrossSilo;
+	toggleCrossSilo.addEventListener('change', (e) => {
+		allowCrossSilo = e.target.checked;
+		localStorage.setItem('silos-ux-cross-silo', allowCrossSilo);
 	});
 }
 
