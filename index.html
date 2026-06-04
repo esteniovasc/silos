@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Mapa Mental FCFFL</title>
+	<title>Silos App</title>
 	<!-- CSS Externo -->
 	<link rel="stylesheet" href="css/style.css">
 	<!-- Favicon (SVG) -->
@@ -444,7 +444,8 @@
 		<div class="modal" style="max-width: 400px; border-left: 5px solid #2196F3;">
 			<h2 style="color: #1976D2; margin-top: 0;">🗃️ Arquivar Silo?</h2>
 			<p style="font-size: 1.1em; color: #333; margin-bottom: 20px;">
-				Tem certeza que deseja arquivar este silo? Ele ficará oculto do projeto, mas você poderá desarquivá-lo futuramente através do menu superior.
+				Tem certeza que deseja arquivar este silo? Ele ficará oculto do projeto, mas você poderá desarquivá-lo
+				futuramente através do menu superior.
 			</p>
 			<div style="display: flex; justify-content: flex-end; gap: 10px;">
 				<button onclick="closeArchiveConfirmModal()" class="modal-btn cancel"
@@ -460,7 +461,8 @@
 		<div class="modal" style="max-width: 500px;">
 			<span class="close-btn" onclick="closeArchivesModal()">&times;</span>
 			<h2 style="margin-top: 0; color: var(--primary);">🗃️ Silos Arquivados</h2>
-			<p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">Silos que não estão mais visíveis no projeto. Você pode desarquivá-los a qualquer momento.</p>
+			<p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">Silos que não estão mais visíveis no
+				projeto. Você pode desarquivá-los a qualquer momento.</p>
 			<div id="archives-list" class="archives-list">
 				<!-- Preenchido via JS -->
 			</div>
@@ -468,7 +470,9 @@
 	</div>
 
 	<!-- Container de Toasts (Notificações) -->
-	<div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 3000; pointer-events: none; user-select: none;"></div>
+	<div id="toast-container"
+		style="position: fixed; bottom: 20px; right: 20px; z-index: 3000; pointer-events: none; user-select: none;">
+	</div>
 
 	<!-- Modal Popup de Imagem (Expandida) -->
 	<div class="modal-overlay" id="image-popup" style="z-index: 3500; display: none; background: rgba(0,0,0,0.85);">
