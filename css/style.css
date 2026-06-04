@@ -403,6 +403,18 @@ body {
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 5px;
+	gap: 10px;
+}
+
+.list-header > span {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	word-break: break-word;
+	line-height: 1.2;
 }
 
 .item-card {
