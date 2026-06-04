@@ -77,6 +77,8 @@ function renderSilos() {
 	createDropZone(0);
 
 	appData.forEach((siloData, index) => {
+		if (siloData.archived) return;
+
 		const silo = document.createElement('div');
 		silo.className = 'silo-ball';
 		silo.id = `silo-${siloData.id}`;
@@ -196,6 +198,8 @@ function renderLists() {
 	listsContainer.innerHTML = '';
 
 	appData.forEach(siloData => {
+		if (siloData.archived) return;
+
 		if (activeSilos.includes(siloData.id)) {
 			const col = document.createElement('div');
 			col.className = `list-column list-type-${siloData.type || 'default'}`; // Classe tipada
@@ -225,7 +229,10 @@ function renderLists() {
 			col.innerHTML = `
             <div class="list-header">
                 <span>${siloData.label}</span>
-                <span class="edit-silo-btn" data-id="${siloData.id}" title="Editar Silo">✏️</span>
+				<div style="display: flex; gap: 10px; align-items: center;">
+                	<span class="archive-silo-btn" data-id="${siloData.id}" title="Arquivar Silo" style="margin-left: 0;">🗃️</span>
+                	<span class="edit-silo-btn" data-id="${siloData.id}" title="Editar Silo" style="margin-left: 0;">✏️</span>
+				</div>
             </div>
             <div class="items-list">
                 ${cardsHtml}
@@ -255,6 +262,14 @@ listsContainer.addEventListener('click', (e) => {
 	const editBtn = e.target.closest('.edit-silo-btn');
 	if (editBtn) {
 		openSiloModal(editBtn.dataset.id);
+		return;
+	}
+
+	// 3. Clique no botão de arquivar silo
+	const archiveBtn = e.target.closest('.archive-silo-btn');
+	if (archiveBtn) {
+		archiveSilo(archiveBtn.dataset.id);
+		return;
 	}
 });
 
@@ -1461,6 +1476,11 @@ window.openModal = openModal;
 window.closeModal = closeModal;
 window.openSiloModal = openSiloModal;
 window.closeSiloModal = closeSiloModal;
+window.openArchivesModal = openArchivesModal;
+window.closeArchivesModal = closeArchivesModal;
+window.unarchiveSilo = unarchiveSilo;
+window.closeArchiveConfirmModal = closeArchiveConfirmModal;
+window.confirmArchiveSilo = confirmArchiveSilo;
 
 // ================= CUSTOMIZAÇÃO DA LOGO =================
 const rootNode = document.getElementById('root');
@@ -1990,6 +2010,18 @@ function closeAnyOpenModal() {
 		return;
 	}
 
+	const archivesModal = document.getElementById('archives-modal');
+	if (archivesModal && archivesModal.style.display === 'flex') {
+		closeArchivesModal();
+		return;
+	}
+
+	const archiveConfirmModal = document.getElementById('archive-confirm-modal');
+	if (archiveConfirmModal && archiveConfirmModal.style.display === 'flex') {
+		closeArchiveConfirmModal();
+		return;
+	}
+
 	const deleteModal = document.getElementById('delete-modal');
 	if (deleteModal && deleteModal.style.display === 'flex') {
 		closeDeleteModal();
@@ -2018,5 +2050,99 @@ function closeAnyOpenModal() {
 	if (detailsModal && detailsModal.style.display === 'flex') {
 		closeModal();
 		return;
+	}
+}
+
+// ================= ARQUIVAMENTO DE SILOS =================
+let siloToArchive = null;
+
+function archiveSilo(siloId) {
+	siloToArchive = siloId;
+	document.getElementById('archive-confirm-modal').style.display = 'flex';
+}
+
+function confirmArchiveSilo() {
+	if (!siloToArchive) return;
+	
+	const silo = appData.find(s => s.id === siloToArchive);
+	if (silo) {
+		silo.archived = true;
+		const index = activeSilos.indexOf(siloToArchive);
+		if (index > -1) {
+			activeSilos.splice(index, 1);
+		}
+		saveData();
+		localStorage.setItem('silos-ui-state', JSON.stringify({ activeSilos }));
+		renderSilos();
+		renderLists();
+		showToast("Silo arquivado com sucesso!", "success");
+	}
+	closeArchiveConfirmModal();
+}
+
+function closeArchiveConfirmModal() {
+	closeModalAnimated('archive-confirm-modal');
+	siloToArchive = null;
+}
+
+function openArchivesModal() {
+	renderArchivesList();
+	document.getElementById('archives-modal').style.display = 'flex';
+}
+
+function closeArchivesModal() {
+	closeModalAnimated('archives-modal');
+}
+
+function renderArchivesList() {
+	const listContainer = document.getElementById('archives-list');
+	listContainer.innerHTML = '';
+	
+	const archivedSilos = appData.filter(s => s.archived === true);
+	
+	if (archivedSilos.length === 0) {
+		listContainer.innerHTML = '<p style="color: #999; text-align: center; margin-top: 20px;">Nenhum silo arquivado no momento.</p>';
+		return;
+	}
+
+	archivedSilos.forEach(silo => {
+		const card = document.createElement('div');
+		card.className = 'archived-card';
+		
+		let iconHtml = '';
+		if (silo.iconType === 'emoji') {
+			iconHtml = silo.iconValue || silo.icon || '📁';
+		} else if (silo.iconType === 'image') {
+			iconHtml = `<img src="${silo.iconValue}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">`;
+		} else if (silo.iconType === 'full') {
+			iconHtml = `<img src="${silo.iconValue}" style="width: 30px; height: 30px; border-radius: 4px; object-fit: cover;">`;
+		}
+
+		card.innerHTML = `
+			<div class="archived-details">
+				<div class="archived-icon">${iconHtml}</div>
+				<div class="archived-title">${silo.label}</div>
+			</div>
+			<button class="btn-unarchive" onclick="unarchiveSilo('${silo.id}')">Desarquivar</button>
+		`;
+		listContainer.appendChild(card);
+	});
+}
+
+function unarchiveSilo(siloId) {
+	const siloIndex = appData.findIndex(s => s.id === siloId);
+	if (siloIndex > -1) {
+		const silo = appData[siloIndex];
+		silo.archived = false;
+		
+		// Move o silo para o final da lista original
+		appData.splice(siloIndex, 1);
+		appData.push(silo);
+		
+		saveData();
+		renderSilos();
+		renderLists();
+		renderArchivesList();
+		showToast("Silo desarquivado com sucesso!", "success");
 	}
 }

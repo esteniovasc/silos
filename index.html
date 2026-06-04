@@ -45,6 +45,8 @@
 				<!-- Direita: Placeholder (Futuras Configurações) -->
 				<div class="header-actions-right">
 					<div class="root-node-placeholder"></div>
+					<button onclick="openArchivesModal()" id="btn-archives" class="header-btn" title="Arquivados"
+						style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer;">🗃️</button>
 					<button id="btn-settings" class="header-btn" title="Configurações"
 						style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer;">⚙️</button>
 				</div>
@@ -426,6 +428,34 @@
 				<button id="btn-discard-confirm" class="modal-btn"
 					style="background: #ffcc00; color: #333; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Descartar
 					e Sair</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal de Confirmação de Arquivamento -->
+	<div class="modal-overlay" id="archive-confirm-modal" style="z-index: 2000;">
+		<div class="modal" style="max-width: 400px; border-left: 5px solid #2196F3;">
+			<h2 style="color: #1976D2; margin-top: 0;">🗃️ Arquivar Silo?</h2>
+			<p style="font-size: 1.1em; color: #333; margin-bottom: 20px;">
+				Tem certeza que deseja arquivar este silo? Ele ficará oculto do projeto, mas você poderá desarquivá-lo futuramente através do menu superior.
+			</p>
+			<div style="display: flex; justify-content: flex-end; gap: 10px;">
+				<button onclick="closeArchiveConfirmModal()" class="modal-btn cancel"
+					style="background: #ccc; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Cancelar</button>
+				<button onclick="confirmArchiveSilo()" class="modal-btn"
+					style="background: #2196F3; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Arquivar</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal de Silos Arquivados -->
+	<div class="modal-overlay" id="archives-modal">
+		<div class="modal" style="max-width: 500px;">
+			<span class="close-btn" onclick="closeArchivesModal()">&times;</span>
+			<h2 style="margin-top: 0; color: var(--primary);">🗃️ Silos Arquivados</h2>
+			<p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">Silos que não estão mais visíveis no projeto. Você pode desarquivá-los a qualquer momento.</p>
+			<div id="archives-list" class="archives-list">
+				<!-- Preenchido via JS -->
 			</div>
 		</div>
 	</div>

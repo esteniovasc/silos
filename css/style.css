@@ -401,6 +401,7 @@ body {
 	color: var(--primary);
 	display: flex;
 	justify-content: space-between;
+	align-items: center;
 	margin-bottom: 5px;
 }
 
@@ -1109,4 +1110,65 @@ body.hide-covers .item-cover {
 	background: rgba(255, 111, 0, 0.1);
 	border-color: var(--accent);
 	box-shadow: 0 0 15px rgba(255, 111, 0, 0.2);
+}
+
+.archive-silo-btn {
+	cursor: pointer;
+	font-size: 1.1em;
+	opacity: 0.6;
+	transition: opacity 0.2s, transform 0.2s;
+}
+
+.archive-silo-btn:hover {
+	opacity: 1;
+	transform: scale(1.1);
+}
+
+.archives-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	max-height: 400px;
+	overflow-y: auto;
+}
+
+.archived-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background: #f9f9f9;
+	border: 1px solid #ddd;
+	padding: 10px 15px;
+	border-radius: 8px;
+	box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.archived-details {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+}
+
+.archived-icon {
+	font-size: 1.5rem;
+}
+
+.archived-title {
+	font-weight: bold;
+	color: #333;
+}
+
+.btn-unarchive {
+	background: var(--primary);
+	color: white;
+	border: none;
+	padding: 6px 12px;
+	border-radius: 5px;
+	cursor: pointer;
+	font-weight: bold;
+	transition: background 0.2s;
+}
+
+.btn-unarchive:hover {
+	background: var(--accent);
 }
